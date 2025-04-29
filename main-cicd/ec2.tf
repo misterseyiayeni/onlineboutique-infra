@@ -1,6 +1,15 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 #configure aws profile
 provider "aws" {
-  region  = "us-east-1"
+  region  = "us-east-2"
   profile = "minecraft"
 }
 
@@ -105,7 +114,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-24.04-amd64-server-*"]
   }
   filter {
     name   = "virtualization-type"
@@ -116,13 +125,18 @@ data "aws_ami" "ubuntu" {
 ###JENKINS SERVERS PUBLIC SUBNETS
 # EC2 Instance with IAM Role
 resource "aws_instance" "jenkins_server" {
-  ami                    = data.aws_ami.amazon_linux_2.id
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.large"
   subnet_id              = aws_subnet.public_subnet_az2.id
   key_name               = "postgreskey"
   user_data              = file("jenkins-maven-ansible-setup.sh")
   vpc_security_group_ids = [aws_security_group.jenkins_security_group.id]
   iam_instance_profile = aws_iam_instance_profile.jenkins_instance_profile.name
+
+  root_block_device {
+    volume_size = 50                 # Set root volume to 50GB
+    volume_type = "gp2"
+  }
 
   tags = {
     Name        = "jenkins server"
@@ -197,27 +211,6 @@ resource "aws_iam_instance_profile" "jenkins_instance_profile" {
 }
 
 
-### NEXUS SERVERS PUBLIC SUBNETS
-resource "aws_instance" "Nexus_server" {
-  ami = data.aws_ami.amazon_linux_2.id
-  instance_type = "t2.medium"
-  subnet_id = aws_subnet.public_subnet_az1.id
-  key_name = "postgreskey"
-  vpc_security_group_ids = [aws_security_group.jenkins_security_group.id]
-  user_data              = file("nexus-setup.sh")
-  tags = {
-    Name = "Nexus server"
-  }
-}
-
-resource "aws_network_interface" "main_network_interface-Nexus" {
-  subnet_id   = aws_subnet.public_subnet_az1.id
-
-  tags = {
-    Name = "Nexus_network_interface"
-  }
-}
-
 ### Prometheus SERVERS PUBLIC SUBNETS
 ###SERVERS PUBLIC SUBNETS
 resource "aws_instance" "Prometheus_server" {
@@ -283,6 +276,7 @@ resource "aws_network_interface" "main_network_interface-SonaQube" {
 }
 
 
+
 # Create security group for the Jenkins instance
 resource "aws_security_group" "jenkins_security_group" {
   name        = "jenkins security group"
@@ -298,14 +292,6 @@ resource "aws_security_group" "jenkins_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "Maven access"
-    from_port   = 9100
-    to_port     = 9100
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
   ingress {
     description = "Prometheus access"
     from_port   = 9090
@@ -326,14 +312,6 @@ resource "aws_security_group" "jenkins_security_group" {
     description = "SonarQube access"
     from_port   = 9000
     to_port     = 9000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Nexus access"
-    from_port   = 8081
-    to_port     = 8081
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

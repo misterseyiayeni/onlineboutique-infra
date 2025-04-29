@@ -7,7 +7,8 @@ terraform {
   }
 }
 
-# Configure the AWS Provider
+#configure aws profile
 provider "aws" {
-  region = "us-east-2" //this region ohio
+  region  = "us-east-2"
+  profile = "minecraft"
 }

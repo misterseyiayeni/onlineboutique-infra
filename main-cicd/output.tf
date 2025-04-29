@@ -4,11 +4,6 @@ output "jenkins_server_public_ip" {
   value       = aws_instance.jenkins_server.public_ip
 }
 
-output "Nexus_server_prublic_ip" {
-  description = "public IP address of the Nexus server"
-  value       = aws_instance.Nexus_server.public_ip
-}
-
 output "Prometheus_server_public_ip" {
   description = "public IP address of the Prometheus server"
   value       = aws_instance.Prometheus_server.public_ip
