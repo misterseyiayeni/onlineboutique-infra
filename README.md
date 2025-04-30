@@ -1,6 +1,6 @@
 # Terraform CI/CD Infrastructure on AWS
 
-This Terraform module provisions a complete CI/CD environment in AWS using the `us-east-2` region and a named profile (`minecraft`). The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
+This Terraform module provisions a complete CI/CD environment in AWS using the `us-east-2` region. The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
 
 ---
 
@@ -23,137 +23,8 @@ This Terraform module provisions a complete CI/CD environment in AWS using the `
   - `9000` (SonarQube)
   - `9090` (Prometheus)
   - `3000` (Grafana)
-
+Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
 ---
-
-2) Slack Setup
-    - Go to the bellow Workspace and create a Private Slack Channel and name it "yourfirstname-jenkins-cicd-pipeline-alerts"
-    - Link: https://join.slack.com/t/jjtechtowerba-zuj7343/shared_invite/zt-24mgawshy-EhixQsRyVuCo8UD~AbhQYQ  
-      - You can either join through the browser or your local Slack App
-      - Create a `Private Channel` using the naming convention `YOUR_INITIAL--multi-microservices-alerts`
-        - **NOTE:** *`(The Channel Name Must Be Unique, meaning it must be available for use)`*
-      - Visibility: Select `Private`
-      - Click on the `Channel Drop Down` and select `Integrations` and Click on `Add an App`
-      - Search for `Jenkins` and Click on `View`
-      - Click on `Configuration/Install` and Click `Add to Slack` 
-      - On Post to Channel: Click the Drop Down and select your channel above `YOUR_INITIAL-multi-microservices-alerts`
-      - Click `Add Jenkins CI Integration`
-      - Scrol Down and Click `SAVE SETTINGS/CONFIGURATIONS`
-      - Leave this page open
-    
-
----
-### 2A) Verify the Following Services are running in the Jenkins Instance
-- SSH into the `Jenkins-CI` server
-    - Run the following commands and confirm that the `services` are all `Running`
-```bash
-# Confirm Java version
-sudo java --version
-
-# Confirm that Jenkins is running
-sudo systemctl status jenkins
-
-# Confirm that docker is running
-sudo systemctl status docker
-
-# Confirm that Terraform is running
-terraform version
-
-# Confirm that the Kubectl utility is running 
-kubectl version --client
-
-# Confirm that AWS CLI is running
-aws --version
-
-# Confirm that the SonarQube container is running
-docker ps | grep sonarqube:lts-community
-
-# Lastly confirm that the `sonarqube-volume docker volume` was created
-docker volume inspect volume sonarqube-volume
-```
-
-### 2A.2) Before Creating The Cluster, Delete Any EKS IAM Role In Your Account
-- Navigate to the `IAM Servce`
-  - Click on `Roles`
-  - Use the `Search Bar` to file roles that starts with `eks`
-  - Delete any Role with the name `eks`
-
-### 2B) Deploy Your EKS Cluster Environment
-- `UPDATE` Your Terraform Provider Region to `Your Choice REGION`*
-    - **⚠️`NOTE:ALERT!`⚠️:** *Do Not Use North Virginia, that's US-EAST-1*
-    - **⚠️`NOTE:ALERT!`⚠️:** *Also Confirm that The Selected Region Has A `Default VPC` You're Confident Has Internet Connection*
-    - **⚠️`NOTE:ALERT!`⚠️:** *The Default Terraform Provider Region Defined In The Config Is **`Ohio(US-EAST-2)`***
-- Confirm you're still logged into the `Jenkins-CI` Server via `SSH`
-- Run the following commands to deploy the `EKS Cluster` in the `Jenkins-CI`
-- **NOTE:** *You Can As Well Deploy The Cluster Using Terraform From Your Local System*
-
-```bash
-# Clone your project reporisoty
-git clone https://github.com/Dappyplay4u/microservice-cicd.git
-
-# cd and checkout into the DevSecOps project branch
-cd Microservices\microservice-cicd\eks-cluster
-
-# Deploy EKS Environment
-terraform init
-terraform plan
-terraform apply --auto-approve
-```
-- Give it about `10 MINUTES` for the cluster creation to complete
-- Then `Duplicate or Open` a New Console `Tab` and `Switch` to the `Ohio(us-east-2) Region`
-- Navigate to `EKS` and confirm that your Cluster was created successfully with the name `EKS_Cluster`
-- Also confirm there's no issue regarding your Terraform execution
-
-
-#### **⚠️`NOTE:ALERT!`⚠️:** FOLLOW THESE STEPS ONLY IF YOUR CLUSTER CREATION FAILED
-- If the Error Message says anything about `EKS IAM Roles` then...
-- Destroy everything by running: `terraform destroy --auto-approve`
-- Wait for everything to get destroy/terminated successfully.
-
-- Then Navigate to `IAM`
-  - In the `Search section`
-  - Search for the word `EKS` and select ALL the EKS Role that shows up
-  - Delete every one of them
-
-- Go back to where you're executing Terraform(that's the Jenkins Instance)
-  - Re-run: `terraform apply --auto-approve`
-  - Wait for another `10 Minute` 
-
-#### 2C) Once The Cluster Deployment Completes, Go Ahead and Enable The OIDC Connector/Provider
-- Run this command from the `Jenkins-CI` instance
-```bash
-eksctl utils associate-iam-oidc-provider \
-    --region us-east-2 \
-    --cluster EKS_Cluster \
-    --approve
-```
-
-#### 2D) Update/Get Cluster Credential: 
-- Run this command from the `Jenkins-CI` instance
-```bash
-aws eks update-kubeconfig --name <clustername> --region <region>
-```
-
-#### 2E) Create Your Test and Prod Environment Namespaces
-- Run this command from the `Jenkins-CI` instance
-```bash
-kubectl create ns test-env
-kubectl create ns prod-env
-kubectl get ns
-```
-
-#### 2F) Update the EKS Cluster Security Group (Add A NodePort and Frontend Port)
-- Navigate to `EC2`
-  - Select any of the `Cluster Worker Nodes`
-  - Click on `Security`
-  - Click on the `EKS Cluster Security Group ID`
-  - Click on `Edit Inbound Rules`
-  - Click on `Add Rule`
-  - Port Number: `30000-32767`, `80`, `22` Source: `0.0.0.0/0`
-  - Click on `SAVE`
-
-
-
 ### Jenkins setup
 1) #### Access Jenkins
     Copy your Jenkins Public IP Address and paste on the browser = ExternalIP:8080
@@ -161,8 +32,9 @@ kubectl get ns
         - Make sure you're still logged into your Jenkins Instance
         - Run the command: `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
         - Copy the password and login to Jenkins
-    ![JenkinsSetup1!](https://github.com/awanmbandi/realworld-cicd-pipeline-project/raw/zdocs/images/jenkins-signup.png) 
-      - **`NOTE:`** Copy the Outputed Password and Paste in the `Administrator password` in Jenkins
+![jenkins signup](jenkins-signup.png)
+
+- **`NOTE:`** Copy the Outputed Password and Paste in the `Administrator password` in Jenkins
     - Plugins: Choose `Install Suggested Plugings` 
     - Provide 
         - Username: **`admin`**
@@ -170,7 +42,7 @@ kubectl get ns
         - `Name` and `Email` can also be admin. You can use `admin` all, as its a poc.
     - Click `Continue`
     - Click on `Start using Jenkins`
-    ![JenkinsSetup2!](https://github.com/awanmbandi/realworld-cicd-pipeline-project/raw/zdocs/images/Screen%20Shot%202023-04-24%20at%208.49.43%20AM.png) 
+![getting started](<Screen Shot 2023-04-24 at 8.49.43 AM.png>)
 
 2)  #### Plugin installations:
     - Click on `Manage Jenkins`
@@ -200,12 +72,15 @@ kubectl get ns
     - Click on `Install`
     - Once all plugins are installed
     - Select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
-    - Refresh your Browser and Log back into Jenkins
+![jenkins restart to load pluggins](<jenkins plugins restart.png>)
+- Refresh your Browser and Log back into Jenkins
     - Once you log back into Jenkins
 
 3)  #### Global tools configuration:
     - Click on Manage Jenkins -->> Global Tool Configuration
-    - **JDK** 
+![Global Tool Configuration](<jenkins global tool config.png>)
+
+- **JDK** 
         - Click on `Add JDK` -->> Make sure **Install automatically** is enabled 
         
         **Note:** By default the **Install Oracle Java SE Development Kit from the website** make sure to close that option by clicking on the image as shown below.
@@ -213,33 +88,38 @@ kubectl get ns
         * Click on `Add installer`
         * Select `Install from adoptium.net` 
         * Version: **`jdk-17.0.8.1+1`**
-    
-    - **Gradle Installation**
+![JDK Pluggin](<openjdk plugins.png>)
+
+- **Gradle Installation**
       - Click on `Add Gradle`
       - Name: `Gradle`
       - Enable `Install automatically`
       - Version: `8.8`
+![Gradle setup](gradle-setup.png)
 
-    - **SonarQube Scanner** 
+- **SonarQube Scanner** 
       - Click on `Add SonarQube Scanner` 
       - Name: `SonarScanner`
       - Enable: `Install automatically` 
+![SonarQube Scanner](sonascanner.png)
 
-    - **Snyk Installations** 
+- **Snyk Installations** 
       - Click on ``Add Snyk`
       - Name: `Snyk`
       - Enable: `Install automatically` 
         - Version: `latest`
         - Update policy interval (hours): `24`
         - OS platform architecture: `Auto-detection`
-    
-    - **Docker installations** 
+![Snyk Installations](snyk-install.png)
+
+- **Docker installations** 
       - Click on `Add Docker` 
       - Name: `Docker`
       - Click on `Add installer`
         - Select `Download from docker.com`
         - Docker version: `latest`
       - Enable: `Install automatically` 
+![Docker installations](<docker installation.png>)
 
 4)  #### Credentials setup(SonarQube, Slack, DockerHub, Kubernetes and ZAP):
     - Click on `Manage Jenkins`
@@ -594,7 +474,3 @@ kubectl get ns
   
 
 ### Congratulations Your Deployment Was Successful
-
-| Home Page                                                                                                         | Checkout Page                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| [![Screenshot of store homepage](/docs/img/online-boutique-frontend-1.png)](/docs/img/online-boutique-frontend-1.png) | [![Screenshot of checkout screen](/docs/img/online-boutique-frontend-2.png)](/docs/img/online-boutique-frontend-2.png) |
