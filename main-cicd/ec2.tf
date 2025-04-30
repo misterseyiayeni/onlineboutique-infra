@@ -10,7 +10,6 @@ terraform {
 #configure aws profile
 provider "aws" {
   region  = "us-east-2"
-  profile = "minecraft"
 }
 
 # create vpc
@@ -114,7 +113,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-24.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
   filter {
     name   = "virtualization-type"

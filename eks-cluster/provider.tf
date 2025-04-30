@@ -10,5 +10,4 @@ terraform {
 #configure aws profile
 provider "aws" {
   region  = "us-east-2"
-  profile = "minecraft"
 }
