@@ -39,7 +39,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   cluster_name    = var.cluster_name
   node_group_name = "${var.cluster_name}-node_group"
   node_role_arn   = aws_iam_role.minecraft-eks-cluster-eks_node_group_role.arn
-  subnet_ids      = [aws_subnet.public-us-east-2a.id, aws_subnet.public-us-east-2b.id]
+  subnet_ids      = [aws_subnet.public-us-west-2a.id, aws_subnet.public-us-west-2b.id]
 
 
   scaling_config {

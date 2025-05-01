@@ -1,6 +1,6 @@
 # Terraform CI/CD Infrastructure on AWS
 
-This Terraform module provisions a complete CI/CD environment in AWS using the `us-east-2` region and a named profile (`minecraft`). The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
+This Terraform module provisions a complete CI/CD environment in AWS using the `us-west-2` region and a named profile (`minecraft`). The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
 
 ---
 
@@ -62,9 +62,9 @@ docker volume inspect volume sonarqube-volume
 
 ### 2B) Deploy Your EKS Cluster Environment
 - `UPDATE` Your Terraform Provider Region to `Your Choice REGION`*
-    - **⚠️`NOTE:ALERT!`⚠️:** *Do Not Use North Virginia, that's US-EAST-1*
+    - **⚠️`NOTE:ALERT!`⚠️:** *Do Not Use North Virginia, that's US-west-1*
     - **⚠️`NOTE:ALERT!`⚠️:** *Also Confirm that The Selected Region Has A `Default VPC` You're Confident Has Internet Connection*
-    - **⚠️`NOTE:ALERT!`⚠️:** *The Default Terraform Provider Region Defined In The Config Is **`Ohio(US-EAST-2)`***
+    - **⚠️`NOTE:ALERT!`⚠️:** *The Default Terraform Provider Region Defined In The Config Is **`Ohio(US-west-2)`***
 - Confirm you're still logged into the `Jenkins-CI` Server via `SSH`
 - Run the following commands to deploy the `EKS Cluster` in the `Jenkins-CI`
 - **NOTE:** *You Can As Well Deploy The Cluster Using Terraform From Your Local System*
@@ -82,7 +82,7 @@ terraform plan
 terraform apply --auto-approve
 ```
 - Give it about `10 MINUTES` for the cluster creation to complete
-- Then `Duplicate or Open` a New Console `Tab` and `Switch` to the `Ohio(us-east-2) Region`
+- Then `Duplicate or Open` a New Console `Tab` and `Switch` to the `Ohio(us-west-2) Region`
 - Navigate to `EKS` and confirm that your Cluster was created successfully with the name `EKS_Cluster`
 - Also confirm there's no issue regarding your Terraform execution
 ![EKS Cluster](<eks cluster successful.png>)
@@ -105,7 +105,7 @@ terraform apply --auto-approve
 - Run this command from the `Jenkins-CI` instance
 ```bash
 eksctl utils associate-iam-oidc-provider \
-    --region us-east-2 \
+    --region us-west-2 \
     --cluster EKS_Cluster \
     --approve
 ```

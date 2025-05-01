@@ -36,51 +36,51 @@ resource "aws_internet_gateway" "minecraft-eks-cluster-igw" {
 # Internal-elb tag used by EKS to select subnets to create private load balancers and elb tag for public load balancers. 
 # Also, you need to have a cluster tag with owned or shared value.
 
-resource "aws_subnet" "private-us-east-2a" {
+resource "aws_subnet" "private-us-west-2a" {
   vpc_id            = aws_vpc.minecraft-eks-cluster-main.id
   cidr_block        = "10.20.0.0/24"
-  availability_zone = "us-east-2a"
+  availability_zone = "us-west-2a"
 
   tags = {
-    "Name"                                      = "private-us-east-2a"
+    "Name"                                      = "private-us-west-2a"
     "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 }
 
-resource "aws_subnet" "private-us-east-2b" {
+resource "aws_subnet" "private-us-west-2b" {
   vpc_id            = aws_vpc.minecraft-eks-cluster-main.id
   cidr_block        = "10.20.32.0/24"
-  availability_zone = "us-east-2b"
+  availability_zone = "us-west-2b"
 
   tags = {
-    "Name"                                      = "private-us-east-2b"
+    "Name"                                      = "private-us-west-2b"
     "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 }
 
-resource "aws_subnet" "public-us-east-2a" {
+resource "aws_subnet" "public-us-west-2a" {
   vpc_id                  = aws_vpc.minecraft-eks-cluster-main.id
   cidr_block              = "10.20.64.0/24"
-  availability_zone       = "us-east-2a"
+  availability_zone       = "us-west-2a"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                                      = "public-us-east-2a"
+    "Name"                                      = "public-us-west-2a"
     "kubernetes.io/role/elb"                    = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 }
 
-resource "aws_subnet" "public-us-east-2b" {
+resource "aws_subnet" "public-us-west-2b" {
   vpc_id                  = aws_vpc.minecraft-eks-cluster-main.id
   cidr_block              = "10.20.96.0/20"
-  availability_zone       = "us-east-2b"
+  availability_zone       = "us-west-2b"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                                      = "public-us-east-2b"
+    "Name"                                      = "public-us-west-2b"
     "kubernetes.io/role/elb"                    = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
@@ -88,7 +88,7 @@ resource "aws_subnet" "public-us-east-2b" {
 
 
 resource "aws_eip" "minecraft-eks-cluster-nat" {
-  vpc = true
+  domain = "vpc"
 
   tags = {
     Name = "minecraft-nat"
@@ -99,7 +99,7 @@ resource "aws_eip" "minecraft-eks-cluster-nat" {
 
 resource "aws_nat_gateway" "minecraft-eks-cluster-nat" {
   allocation_id = aws_eip.minecraft-eks-cluster-nat.id
-  subnet_id     = aws_subnet.public-us-east-2a.id
+  subnet_id     = aws_subnet.public-us-west-2a.id
 
   tags = {
     Name = "minecraft-nat"
@@ -142,22 +142,22 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table_association" "private-us-east-2a" {
-  subnet_id      = aws_subnet.private-us-east-2a.id
+resource "aws_route_table_association" "private-us-west-2a" {
+  subnet_id      = aws_subnet.private-us-west-2a.id
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_route_table_association" "private-us-east-2b" {
-  subnet_id      = aws_subnet.private-us-east-2b.id
+resource "aws_route_table_association" "private-us-west-2b" {
+  subnet_id      = aws_subnet.private-us-west-2b.id
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_route_table_association" "public-us-east-2a" {
-  subnet_id      = aws_subnet.public-us-east-2a.id
+resource "aws_route_table_association" "public-us-west-2a" {
+  subnet_id      = aws_subnet.public-us-west-2a.id
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table_association" "public-us-east-2b" {
-  subnet_id      = aws_subnet.public-us-east-2b.id
+resource "aws_route_table_association" "public-us-west-2b" {
+  subnet_id      = aws_subnet.public-us-west-2b.id
   route_table_id = aws_route_table.public.id
 }

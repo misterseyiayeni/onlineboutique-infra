@@ -7,10 +7,16 @@ terraform {
   }
 }
 
-#configure aws profile
 provider "aws" {
-  region  = "us-east-2"
+  region = "us-west-2"
+
+  default_tags {
+    tags = {
+      Name = "minecraft"
+    }
+  }
 }
+
 
 # create vpc
 # terraform aws create vpc
@@ -39,7 +45,7 @@ resource "aws_internet_gateway" "internet_gateway" {
 resource "aws_subnet" "public_subnet_az1" {
   vpc_id                  = aws_vpc.vpc.id 
   cidr_block              = var.public_subnet_az1_cidr
-  availability_zone = "us-east-1a"
+  availability_zone = "us-west-2a"
   map_public_ip_on_launch = true
 
   tags      = {
@@ -52,7 +58,7 @@ resource "aws_subnet" "public_subnet_az1" {
 resource "aws_subnet" "public_subnet_az2" {
   vpc_id                  = aws_vpc.vpc.id 
   cidr_block              = var.public_subnet_az2_cidr
-  availability_zone = "us-east-1a"
+  availability_zone = "us-west-2a"
   map_public_ip_on_launch = true
 
   tags      = {
@@ -124,7 +130,7 @@ data "aws_ami" "ubuntu" {
 ###JENKINS SERVERS PUBLIC SUBNETS
 # EC2 Instance with IAM Role
 resource "aws_instance" "jenkins_server" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami = data.aws_ami.amazon_linux_2.id
   instance_type          = "t2.large"
   subnet_id              = aws_subnet.public_subnet_az2.id
   key_name               = "postgreskey"

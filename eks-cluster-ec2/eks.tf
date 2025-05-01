@@ -84,10 +84,10 @@ resource "aws_eks_cluster" "minecraft-eks-cluster" {
     public_access_cidrs     = ["0.0.0.0/0"]
 
     subnet_ids = [
-      aws_subnet.private-us-east-2a.id,
-      aws_subnet.private-us-east-2b.id,
-      aws_subnet.public-us-east-2a.id,
-      aws_subnet.public-us-east-2b.id
+      aws_subnet.private-us-west-2a.id,
+      aws_subnet.private-us-west-2b.id,
+      aws_subnet.public-us-west-2a.id,
+      aws_subnet.public-us-west-2b.id
     ]
   }
 

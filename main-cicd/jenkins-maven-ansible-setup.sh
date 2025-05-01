@@ -1,18 +1,30 @@
 #!/bin/bash
-# Hardware requirements: Amazon Linux 2 Kernel 5.10 AMI with mimum t2.medium type instance & port 8080(jenkins), 9100 (node-exporter) should be allowed on the security groups
-#Note: Dont use the latest EC2 Linux of 2023 as it doesnt have amazon-linux-extras which was used in the Jenkins installation as per the old AMI.
-# Installing Jenkins
-sudo yum update –y
-sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key # Note: Refer this link to change this key line frequently https://pkg.jenkins.io/redhat-stable/
-sudo yum upgrade
-sudo amazon-linux-extras install java-openjdk11 -y
-sudo yum install jenkins -y
-sudo echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-sudo systemctl enable jenkins
-sudo systemctl start jenkins
-sudo systemctl start jenkins
-sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+# Update the system
+yum update -y
+# Install Java 17 (Amazon Corretto)
+amazon-linux-extras enable corretto17
+yum install -y java-17-amazon-corretto-devel
+# Add Jenkins repository
+wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+# Install Jenkins
+yum install -y jenkins
+# Start and enable Jenkins service
+systemctl enable jenkins
+systemctl start jenkins
+# Wait for Jenkins to initialize
+echo "Waiting for Jenkins to start..."
+sleep 30
+# Retrieve and display initial admin password
+echo "Jenkins initial admin password:"
+cat /var/lib/jenkins/secrets/initialAdminPassword 2>/dev/null || echo "Password file not ready yet. Try again in a few minutes."
+# Optional: Open firewall port 8080 if using firewalld
+# systemctl status firewalld >/dev/null 2>&1
+# if [ $? -eq 0 ]; then
+#     firewall-cmd --permanent --add-port=8080/tcp
+#     firewall-cmd --reload
+# fi
+echo "Setup complete!"
 
 # Installing Git
 sudo yum install git -y

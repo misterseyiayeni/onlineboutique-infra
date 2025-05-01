@@ -5,7 +5,7 @@
 #     # Replace this with your bucket name!
 #     bucket         = "minecraft"
 #     key            = "minecraft/terraform.tfstate"
-#     region         = "us-east-2"
+#     region         = "us-west-2"
 
 #     # Replace this with your DynamoDB table name!
 #     dynamodb_table = "minecraft"
@@ -19,16 +19,22 @@
 #   }
 # }
 
-#configure aws profile
 provider "aws" {
-  region  = "us-east-2"
+  region = "us-west-2"
+
+  default_tags {
+    tags = {
+      Name = "minecraft"
+    }
+  }
 }
+
 
 # Create an S3 bucket
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "minecraft-application-bucket"
-  acl    = "private"
 }
+
 
 # Create an SQS queue
 resource "aws_sqs_queue" "my_queue" {
