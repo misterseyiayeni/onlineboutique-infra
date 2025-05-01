@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('eks deployment repo'){
+            steps{
+                git branch: 'main', url: 'https://github.com/Dappyplay4u/microservice-cicd.git'
+            }
+        }
+        stage('Terraform Init') {
+            steps {
+                dir('eks-cluster-ec2') {
+                    sh 'terraform init --reconfigure'
+                }
+            }
+        }
+        stage('Terraform Validate') {
+            steps {
+                dir('eks-cluster-ec2') {
+                    sh 'terraform validate'
+                }
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                dir('eks-cluster-ec2') {
+                    sh 'terraform plan'
+                }
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                dir('eks-cluster-ec2') {
+                    sh 'terraform ${action} --auto-approve'
+                }
+            }
+        }
+    }
+}
