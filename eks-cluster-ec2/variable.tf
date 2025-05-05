@@ -12,5 +12,5 @@ variable "region" {
 
 variable "ingress_ports" {
   description = "Managed node groups use this security group for control-plane-to-data-plane communication."
-  default     = ["22", "80", "443", "8080", "9090", "9443", "2049"]
+  default     = ["22", "80", "443", "8080", "9090", "9093", "9443", "2049" , "30090"]
 }

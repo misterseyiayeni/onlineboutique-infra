@@ -96,3 +96,168 @@ On Post to Channel: Click the Drop Down and select your channel above YOUR_INITI
   - Leave this page open
 
 ![Slack channel](slack-multi-microservices-project.png)
+
+#### 3) Metrics on EKS Stack
+🧰 Prometheus Installation and Architecture
+
+![prometheus architecture](prometheus-architecture.gif)
+
+🧰 Step 1: Install kube-prometheus-stack
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+🚀 Step 2: Deploy the chart into a new namespace "monitoring"
+kubectl create ns monitoring
+
+helm install monitoring prometheus-community/kube-prometheus-stack \
+-n monitoring \
+-f ./custom_kube_prometheus_stack.yml
+
+✅ Step 3: Verify the Installation
+kubectl get all -n monitoring
+Prometheus UI:
+kubectl port-forward service/prometheus-operated -n monitoring 9090:9090
+NOTE: If you are using an EC2 Instance or Cloud VM, you need to pass --address 0.0.0.0 to the above command. Then you can access the UI on instance-ip:port
+
+
+#### 3) Monitoring
+
+🧰 Grafana UI: password is prom-operator
+kubectl port-forward service/monitoring-grafana -n monitoring 8080:80
+Alertmanager UI:
+kubectl port-forward service/alertmanager-operated -n monitoring 9093:9093
+
+
+#### 🚀 Metrics and Monitoring on  a seprate EC2 (External Prometheus Scraping Kubernetes Metrics)
+
+[Kubernetes Cluster]
+    |
+    └── kubelet / node-exporter / cAdvisor / kube-state-metrics / app metrics
+           ↓
+[Metrics exposed via NodePort or Ingress]
+           ↓
+[Prometheus on EC2] ←────── Securely scrapes these metrics over public IP or private networking
+
+🧰 Step-by-Step Setup
+🔹 1. Deploy Metrics Exporters Inside Kubernetes
+Recommended: Use the kube-prometheus-stack, which bundles:
+
+kube-state-metrics
+
+node-exporter
+
+Prometheus
+
+Alertmanager
+
+Grafana
+
+📦 Install via Helm:
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+kubectl create namespace monitoring
+
+helm install monitoring prometheus-community/kube-prometheus-stack \
+-n monitoring \
+-f ./eks-cluster-ec2/node_exporter.yml
+
+🔹 2. Expose Metrics Outside the Cluster
+To allow Prometheus on EC2 to access metrics, expose the Prometheus service.
+
+✅ Option A: NodePort (Quick Setup)
+
+node_exporter.yml
+
+🌐 Access from EC2:
+
+http://<k8s-node-external-ip>:30090/metrics
+
+✅ Ensure the Kubernetes node’s security group allows inbound access from the EC2 IP on port 30090.
+
+🔐 Option B: Ingress (Recommended for TLS + DNS)
+Use this for secure HTTPS access via a DNS name:
+
+/eks-cluster-ec2/prometheus-ingress.yml
+
+🌐 Access from EC2:
+
+http://prometheus.mycluster.mydomain.com/metrics
+⚠️ Recommended with TLS via cert-manager, and protected with Basic Auth or mTLS.
+
+🔹 3. Configure Prometheus on EC2 to Scrape K8s Metrics
+Edit /etc/prometheus/prometheus.yml (or your custom config path):
+
+scrape_configs:
+  - job_name: 'k8s-metrics'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - <k8s-node-ip>:30090                 # NodePort target
+          # OR
+          - prometheus.mycluster.mydomain.com   # Ingress target
+🌀 Restart Prometheus on EC2:
+
+sudo systemctl restart prometheus
+# or
+docker restart prometheus  # if using Docker
+
+🔹 4. Security Best Practices (Highly Recommended)
+✅ Use HTTPS via cert-manager for Ingress
+
+🔐 Restrict access to NodePort via EC2 IP allowlist in security group
+
+🔐 Add Basic Authentication or mTLS to your Ingress controller
+
+🔒 Keep EC2’s Prometheus instance in a VPC with restricted egress if possible
+
+🧪 5. Test Connectivity from EC2
+curl http://<k8s-node-ip>:30090/metrics
+# OR
+curl https://prometheus.mycluster.mydomain.com/metrics
+
+✅ If metrics appear in response, Prometheus scraping is working!
+
+
+#### 🚀📊 How Grafana Gets Metrics
+Grafana doesn’t collect metrics by itself — it connects to a data source like Prometheus, InfluxDB, or others.
+
+In this setup:
+
+[EKS Cluster] → [Prometheus on EC2] → [Grafana on another EC2 instance]
+Prometheus scrapes metrics from EKS (via NodePort or Ingress).
+
+Grafana connects to Prometheus over HTTP or HTTPS using its public/private IP or DNS name.
+
+Grafana uses PromQL queries to visualize the metrics Prometheus has stored.
+
+🛠 Configuration Steps (EC2 → EC2)
+✅ 1. Ensure Prometheus is Exposed to Grafana
+Let’s say your Prometheus EC2 public IP is 54.123.45.67 and it's listening on port 9090.
+
+You should:
+
+Open port 9090 on Prometheus EC2 security group for Grafana EC2's IP.
+
+Test from Grafana EC2:
+
+curl http://54.123.45.67:9090/metrics
+If this works — Prometheus is reachable.
+
+✅ 2. Add Prometheus as a Data Source in Grafana
+Option A: Use Grafana Web UI
+Open your Grafana UI (e.g., http://<grafana-ec2-ip>:3000)
+
+Go to ⚙️ Configuration → Data Sources
+
+Click Add data source
+
+Select Prometheus
+
+Enter:
+
+URL: http://54.123.45.67:9090
+
+(Optional) Auth or TLS if Prometheus is secured
+
+Click Save & Test
