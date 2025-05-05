@@ -122,7 +122,7 @@ NOTE: If you are using an EC2 Instance or Cloud VM, you need to pass --address 0
 
 #### 3) Monitoring
 
-🧰 Grafana UI: password is prom-operator
+🧰 Grafana UI default username and password: admin / admin
 kubectl port-forward service/monitoring-grafana -n monitoring 8080:80
 Alertmanager UI:
 kubectl port-forward service/alertmanager-operated -n monitoring 9093:9093

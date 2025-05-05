@@ -2,28 +2,18 @@
 
 This Terraform module provisions a complete CI/CD environment in AWS using the `us-east-2` region. The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
 
----
+Cd into main-cicd
 
-## 🚀 Features
+terraform init
+terraform plan
+terraform apply
 
-- **Custom VPC** with DNS support and public subnets
-- **Internet Gateway** and **Route Tables** for internet access
-- **Ubuntu and Amazon Linux 2 EC2 Instances** for:
-  - Jenkins (t2.large, 50GB root volume)
-  - Prometheus (t2.micro)
-  - Grafana (t2.micro)
-  - SonarQube (t2.medium)
-- **Automated setup scripts** using `user_data` for each server
-- **IAM Role & Instance Profile** for Jenkins with EC2 permissions
-- **Security Group** allowing inbound access to:
-  - `22` (SSH)
-  - `80` (HTTP)
-  - `443` (HTTPS)
-  - `8080` (Jenkins)
-  - `9000` (SonarQube)
-  - `9090` (Prometheus)
-  - `3000` (Grafana)
-Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
+### this automatically setup your instances for
+sonaqube
+jenkins
+prometheus
+grafana
+
 ---
 ### Jenkins setup
 1) #### Access Jenkins
@@ -33,6 +23,8 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
         - Run the command: `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
         - Copy the password and login to Jenkins
 ![jenkins signup](jenkins-signup.png)
+
+### Note:  Jenkins URL http://44.245.158.243:8080/
 
 - **`NOTE:`** Copy the Outputed Password and Paste in the `Administrator password` in Jenkins
     - Plugins: Choose `Install Suggested Plugings` 
@@ -69,6 +61,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
         - **ssh-agent**
         - **BlueOcean**
         - **Build Timestamp**
+        - **Prometheus Metrics Plugin**
     - Click on `Install`
     - Once all plugins are installed
     - Select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
@@ -78,6 +71,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
 
 3)  #### Global tools configuration:
     - Click on Manage Jenkins -->> Global Tool Configuration
+    - Click on tools -->> Global Tool Configuration
 ![Global Tool Configuration](<jenkins global tool config.png>)
 
 - **JDK** 
@@ -137,7 +131,9 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
                 - New Password: **`adminadmin`**
                 - Confirm Password: **`adminadmin`**
 
-              - Click on `Manually` *(Create the `app-shipping-service` microservice test project)*
+          ### click on administration and click on projects, management
+
+              - Click on `create project` *(Create the `app-shipping-service` microservice test project)*
                 - Project display name: `app-shipping-service`
                 - Display key: `app-shipping-service`
                 - Main branch name: `app-shipping-service` 
@@ -207,7 +203,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
                 - Type: `Global Analysis Token`
                 - Expires in: `30 days`
               - Click on `GENERATE`
-              - NOTE: *`Save The Token Somewhere...`*
+              - NOTE: *`Save The Token Somewhere...`*   72a5d7f0d14bbb9f71e5d9dc741531f26ecdfcf3
 
           - ###### Store SonarQube Secret Token in Jenkins:
               - Navigate back to Jenkins http://JENKINS_PUBLIC_IP:8080
@@ -242,9 +238,9 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
               - Description: `Slack-Credential`
               - Click on `Create`  
 
-      3)  ##### DockerHub Credential (Username and Password)
-          - ###### Login to Your DockerHub Account (You can CREATE one if you Don't have an Account)
-              - Access DockerHub at: https://hub.docker.com/
+3)  ##### DockerHub Credential (Username and Password)
+      - ###### Login to Your DockerHub Account (You can CREATE one if you Don't have an Account)
+      - Access DockerHub at: https://hub.docker.com/
               - Provide Username: `YOUR USERNAME`
               - Provide Username: `YOUR PASSWORD`
               - Click on `Sign In` or `Sign Up`    
@@ -264,6 +260,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
         - ###### Get Cluster Credential From Kube Config
             - `SSH` back into your `Jenkins-CI` server
             - RUN the command: `aws eks update-kubeconfig --name <clustername> --region <region>`
+            ###### aws eks update-kubeconfig --name minecraft-eks-cluster --region us-west-2
             - COPY the Cluster KubeConfig: `cat ~/.kube/config`
             - `COPY` the KubeConfig file content
                 - You can use your `Notepad` or any other `Text Editor` as well
@@ -300,7 +297,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
             - Scope: Select `Global......`
             - Type: Select `SSH Username with Private Key`
             - ID and Description: `OWASP-Zap-Credential`
-            - Username: `ubuntu`
+            - Username: `amazon-linux`
             - Private key: Select
               - Key: Click on `Add`
               - Key: `Paste The Private Key Content You Copied`
@@ -316,6 +313,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
             - Auth Token (KEY): Click on `Click To Show`
             - **COPY** the TOKEN and SAVE somewhere
         
+
         - ###### Create SNYK Credential in Jenkins
             - Click on ``Add Credentials``
             - Kind: `Secret text`
@@ -330,7 +328,7 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
         - Click on ``System`` and navigate to the `SonarQube Servers` section
         - Click on Add `SonarQube`
         - Name: `Sonar-Server`
-        - Server URL: http://YOUR_JENKINS_PRIVATE_IP:9000
+        - Server URL: http://<SONARQUBE_SERVER_IP>:9000
         - Server authentication token: Select `SonarQube-Credential`
 
     2)  - Still on `Manage Jenkins` and `Configure System`
@@ -342,6 +340,49 @@ Port Number: 30000-32767, 80, 22 Source: 0.0.0.0/0
             - Default channel / member id: `#PROVIDE_YOUR_CHANNEL_NAME_HERE`
             - Click on `Test Connection`
             - Click on `Apply` and `Save`
+
+4) ### 🛠 Step 1: Configure Prometheus to Scrape Metrics
+
+Update the prometheus.yml config file on the EC2 instance:
+### path /etc/prometheus/prometheus.yml
+scrape_configs:
+  - job_name: 'jenkins'
+    metrics_path: /prometheus
+    static_configs:
+      - targets: ['<jenkins-ec2-ip>:8080']
+
+Save and restart Prometheus:
+sudo systemctl restart prometheus
+systemctl status prometheus
+Verify via Prometheus UI under Status > Targets
+![prometheus Target](<prometheus target.png>)
+
+
+### 🛠 Step 2: Connect Prometheus as Data Source in Grafana
+     - Log in to Grafana UI
+     - Navigate to Settings > Data Sources
+     - Click Add Data Source
+     - Select Prometheus
+     - Configure:
+     - URL: http://<prometheus-ec2-ip>:9090
+     - Click Save & Test
+
+### 📊 Step 3: Import Dashboards
+     - In Grafana, click + > Import
+     - Use a popular dashboard ID:
+     - Jenkins (ID: 9964)
+     - Kubernetes (ID: 315)
+     - Node Exporter (ID: 1860)
+     - Set Prometheus as the data source
+     - Click Import
+
+### 🚨 Step 4: Set Up Alerts
+   - Grafana Alerts
+   - In Grafana, go to Alerting > Contact Points
+   - Add email, Slack, or webhook as a contact point
+   - Create an Alert Rule (e.g., high CPU on Jenkins or failed jobs)
+   - Assign to dashboard panels
+
 
 ### Pipeline creation (Make Sure To Make The Following Updates First)
 - UPDATE YOUR ``Jenkinsfiles...``
