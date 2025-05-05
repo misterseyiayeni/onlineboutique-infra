@@ -14,6 +14,21 @@ jenkins
 prometheus
 grafana
 
+### The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
+
+✅ Core Components & Flow
+🏗️ Terraform-Based Provisioning infrastructure (EC2 instances, VPC, subnets, security groups)
+☁️ AWS Cloud: The platform hosting all EC2 instances
+🔁 CI/CD Pipeline (Orchestrated by Jenkins)
+🧱 Jenkins
+🧪 SonarQube: Used for SAST (Static Application Security Testing).
+🛡 Snyk: Performs Software Composition Analysis (SCA) for dependency vulnerabilities.
+🐳 Docker: Jenkins builds and tags Docker images for microservices.
+📜 OPA/Conftest: Scans the Dockerfile for misconfigurations using policy-as-code
+☸️ Kubernetes (EKS or self-managed): The target environment for application deployment.
+🔍 Observability: Prometheus + Grafana 📊 Prometheus 📈 Grafana
+📣 Notifications: Slack Integration is configured in Jenkins:
+![CICD architecture ](architecture.png)
 ---
 ### Jenkins setup
 1) #### Access Jenkins
@@ -371,10 +386,9 @@ Verify via Prometheus UI under Status > Targets
      - In Grafana, click + > Import
      - Use a popular dashboard ID:
      - Jenkins (ID: 9964)
-     - Kubernetes (ID: 315)
-     - Node Exporter (ID: 1860)
      - Set Prometheus as the data source
      - Click Import
+![grafana display](<grafana display.png>)
 
 ### 🚨 Step 4: Set Up Alerts
    - Grafana Alerts
