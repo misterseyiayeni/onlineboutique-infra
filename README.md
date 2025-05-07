@@ -429,15 +429,17 @@ Verify via Prometheus UI under Status > Targets
    - Create an Alert Rule (e.g., high CPU on Jenkins or failed jobs)
    - Assign to dashboard panels
 
-
 ### Pipeline creation (Make Sure To Make The Following Updates First)
 - UPDATE YOUR ``Jenkinsfiles...``
 
-- Update your `Frontend Service` - `OWASP Zap Server IP` and `EKS Worker Node IP` in the `Jenkinsfile` on `Line 80`
-  - `NOTE` to update the `Frontend Service`, you must `Switch` to the `app-Frontend-Branch`
+- Update your `Frontend Service` - `OWASP Zap Server IP` and `EKS Worker Node IP` in the `Jenkinsfile` on `Line 100`
+  - `NOTE` to update the `Frontend Service`, you must `Switch` to the `Frontend Branch`
+- Update the `EKS Worker Node IP` with yours in the `Jenkinsfile` on `Line 100`
+<!-- sh 'ssh -o StrictHostKeyChecking=no ubuntu@35.90.100.75 "docker run -t zaproxy/zap-weekly zap-baseline.py -t http://44.244.36.98:30000/" || true' -->
 
-- Update the `EKS Worker Node IP` with yours in the `Jenkinsfile` on `Line 80`
-- Update your `Slack Channel Name` in the `Jenkinsfiles...` - `All Microservices`
+- Update your `Slack Channel Name` in the `Jenkinsfiles...` - `All Microservices` on `Line 126`
+<!-- slackSend channel: '#all-minecraftapp', -->
+
 
 - Update `SonarQube projectName` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `SonarQube projectKey` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
