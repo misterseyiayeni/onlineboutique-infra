@@ -1,6 +1,6 @@
 ## Create IAM role and policies so the worker nodes can communicate with the pods running on it
 
-resource "aws_iam_role" "minecraft-eks-cluster-eks_node_group_role" {
+resource "aws_iam_role" "online-shop-eks-cluster-eks_node_group_role" {
   name = "${var.cluster_name}-node-group_role"
 
   assume_role_policy = jsonencode({
@@ -17,17 +17,17 @@ resource "aws_iam_role" "minecraft-eks-cluster-eks_node_group_role" {
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.minecraft-eks-cluster-eks_node_group_role.name
+  role       = aws_iam_role.online-shop-eks-cluster-eks_node_group_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.minecraft-eks-cluster-eks_node_group_role.name
+  role       = aws_iam_role.online-shop-eks-cluster-eks_node_group_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.minecraft-eks-cluster-eks_node_group_role.name
+  role       = aws_iam_role.online-shop-eks-cluster-eks_node_group_role.name
 }
 
 
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
 resource "aws_eks_node_group" "eks_node_group" {
   cluster_name    = var.cluster_name
   node_group_name = "${var.cluster_name}-node_group"
-  node_role_arn   = aws_iam_role.minecraft-eks-cluster-eks_node_group_role.arn
+  node_role_arn   = aws_iam_role.online-shop-eks-cluster-eks_node_group_role.arn
   subnet_ids      = [aws_subnet.public-us-west-2a.id, aws_subnet.public-us-west-2b.id]
 
 
@@ -51,7 +51,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   instance_types = ["t2.medium"]
 
   depends_on = [
-    aws_eks_cluster.minecraft-eks-cluster
+    aws_eks_cluster.online-shop-eks-cluster
   ]
 
 

@@ -8,7 +8,7 @@ module "aws_load_balancer_controller_irsa_role" {
 
   oidc_providers = {
     ex = {
-      provider_arn               = aws_iam_openid_connect_provider.minecraft-eks-cluster.arn
+      provider_arn               = aws_iam_openid_connect_provider.online-shop-eks-cluster.arn
       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
     }
   }
@@ -30,7 +30,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "clusterName"
-    value = aws_eks_cluster.minecraft-eks-cluster.id
+    value = aws_eks_cluster.online-shop-eks-cluster.id
   }
 
   set {

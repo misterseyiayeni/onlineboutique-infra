@@ -1,5 +1,0 @@
-terraform.tfstate
-terraform.tfstate.backup
-.terraform
-.terraform.lock.hcl
-/.terraform/providers/registry.terraform.io/hashicorp/aws/5.35.0/windows_amd64/terraform-provider-aws_v5.35.0_x5.exe

@@ -5,7 +5,7 @@
 # stateful workloads in your Kubernetes cluster.
 
 # Create a vpc resouce
-resource "aws_vpc" "minecraft-eks-cluster-main" {
+resource "aws_vpc" "online-shop-eks-cluster-main" {
   cidr_block = "10.20.0.0/16"
 
   # Must be enabled for EFS
@@ -13,7 +13,7 @@ resource "aws_vpc" "minecraft-eks-cluster-main" {
   enable_dns_hostnames = true
   
   tags = {
-    Name = "minecraft-VPC"
+    Name = "online-shop-VPC"
   }
 }
 
@@ -21,11 +21,11 @@ resource "aws_vpc" "minecraft-eks-cluster-main" {
 ## Create an IGW. It is used to provide internet access directly from the public subnets 
 # and indirectly from private subnets by using a NAT gateway.
 
-resource "aws_internet_gateway" "minecraft-eks-cluster-igw" {
-  vpc_id = aws_vpc.minecraft-eks-cluster-main.id
+resource "aws_internet_gateway" "online-shop-eks-cluster-igw" {
+  vpc_id = aws_vpc.online-shop-eks-cluster-main.id
 
   tags = {
-    Name = "minecraft-igw"
+    Name = "online-shop-igw"
   }
 }
 
@@ -37,7 +37,7 @@ resource "aws_internet_gateway" "minecraft-eks-cluster-igw" {
 # Also, you need to have a cluster tag with owned or shared value.
 
 resource "aws_subnet" "private-us-west-2a" {
-  vpc_id            = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id            = aws_vpc.online-shop-eks-cluster-main.id
   cidr_block        = "10.20.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "private-us-west-2a" {
 }
 
 resource "aws_subnet" "private-us-west-2b" {
-  vpc_id            = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id            = aws_vpc.online-shop-eks-cluster-main.id
   cidr_block        = "10.20.32.0/24"
   availability_zone = "us-west-2b"
 
@@ -61,7 +61,7 @@ resource "aws_subnet" "private-us-west-2b" {
 }
 
 resource "aws_subnet" "public-us-west-2a" {
-  vpc_id                  = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id                  = aws_vpc.online-shop-eks-cluster-main.id
   cidr_block              = "10.20.64.0/24"
   availability_zone       = "us-west-2a"
   map_public_ip_on_launch = true
@@ -74,7 +74,7 @@ resource "aws_subnet" "public-us-west-2a" {
 }
 
 resource "aws_subnet" "public-us-west-2b" {
-  vpc_id                  = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id                  = aws_vpc.online-shop-eks-cluster-main.id
   cidr_block              = "10.20.96.0/20"
   availability_zone       = "us-west-2b"
   map_public_ip_on_launch = true
@@ -87,25 +87,25 @@ resource "aws_subnet" "public-us-west-2b" {
 }
 
 
-resource "aws_eip" "minecraft-eks-cluster-nat" {
+resource "aws_eip" "online-shop-eks-cluster-nat" {
   domain = "vpc"
 
   tags = {
-    Name = "minecraft-nat"
+    Name = "online-shop-nat"
   }
 }
 
 # Create a NAT gateway
 
-resource "aws_nat_gateway" "minecraft-eks-cluster-nat" {
-  allocation_id = aws_eip.minecraft-eks-cluster-nat.id
+resource "aws_nat_gateway" "online-shop-eks-cluster-nat" {
+  allocation_id = aws_eip.online-shop-eks-cluster-nat.id
   subnet_id     = aws_subnet.public-us-west-2a.id
 
   tags = {
-    Name = "minecraft-nat"
+    Name = "online-shop-nat"
   }
 
-  depends_on = [aws_internet_gateway.minecraft-eks-cluster-igw]
+  depends_on = [aws_internet_gateway.online-shop-eks-cluster-igw]
 }
 
 
@@ -117,28 +117,28 @@ resource "aws_nat_gateway" "minecraft-eks-cluster-nat" {
 # Two private subnets and two public subnets.
 
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id = aws_vpc.online-shop-eks-cluster-main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.minecraft-eks-cluster-nat.id
+    nat_gateway_id = aws_nat_gateway.online-shop-eks-cluster-nat.id
   }
 
   tags = {
-    Name = "minecraft-private"
+    Name = "online-shop-private"
   }
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id = aws_vpc.online-shop-eks-cluster-main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.minecraft-eks-cluster-igw.id
+    gateway_id = aws_internet_gateway.online-shop-eks-cluster-igw.id
   }
 
   tags = {
-    Name = "minecraft-public"
+    Name = "online-shop-public"
   }
 }
 

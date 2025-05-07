@@ -2,15 +2,12 @@
 
 # terraform {
 #   backend "s3" {
-#     # Replace this with your bucket name!
-#     bucket         = "minecraft"
-#     key            = "minecraft/terraform.tfstate"
-#     region         = "us-west-2"
-
-#     # Replace this with your DynamoDB table name!
-#     dynamodb_table = "minecraft"
+#     bucket = "online-shop"
+#     key    = "online-shop/terraform.tfstate"
+#     region = "us-west-2"
+#     # dynamodb_table = "online-shop"  # commented out to disable locking
 #   }
-  
+
 #   required_providers {
 #     aws = {
 #       source  = "hashicorp/aws"
@@ -18,6 +15,8 @@
 #     }
 #   }
 # }
+
+
 
 provider "aws" {
   region = "us-west-2"
@@ -32,36 +31,36 @@ provider "aws" {
 
 # Create an S3 bucket
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "minecraft-application-bucket"
+  bucket = "online-shop-application-bucket"
 }
 
 
 # Create an SQS queue
 resource "aws_sqs_queue" "my_queue" {
-  name = "minecraft-application-queue"
+  name = "online-shop-application-queue"
 }
 
 
-data "aws_eks_cluster_auth" "minecraft-eks-cluster" {
-  name = aws_eks_cluster.minecraft-eks-cluster.id
+data "aws_eks_cluster_auth" "online-shop-eks-cluster" {
+  name = aws_eks_cluster.online-shop-eks-cluster.id
 }
 
-data "aws_eks_cluster" "minecraft-eks-cluster" {
-  name = aws_eks_cluster.minecraft-eks-cluster.id
+data "aws_eks_cluster" "online-shop-eks-cluster" {
+  name = aws_eks_cluster.online-shop-eks-cluster.id
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.minecraft-eks-cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.minecraft-eks-cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.minecraft-eks-cluster.token
+  host                   = data.aws_eks_cluster.online-shop-eks-cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.online-shop-eks-cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.online-shop-eks-cluster.token
   # load_config_file       = false
 }
 
 provider "helm" {
   kubernetes {
-    host                   = data.aws_eks_cluster.minecraft-eks-cluster.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.minecraft-eks-cluster.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.minecraft-eks-cluster.token
+    host                   = data.aws_eks_cluster.online-shop-eks-cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.online-shop-eks-cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.online-shop-eks-cluster.token
     # load_config_file       = false
   }
 }

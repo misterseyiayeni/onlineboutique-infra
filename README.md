@@ -40,6 +40,7 @@ grafana
 🔍 Observability: Prometheus + Grafana 📊 Prometheus 📈 Grafana
 📣 Notifications: Slack Integration is configured in Jenkins:
 ![CICD architecture ](architecture.png)
+![microservice Architecture](architecture-1.png)
 ---
 ### Jenkins setup
 1) #### Access Jenkins
@@ -293,7 +294,7 @@ Apply and save
             - `SSH` back into your `Jenkins-CI` server
             ###  aws configure
             - RUN the command: `aws eks update-kubeconfig --name <clustername> --region <region>`
-            ###### aws eks update-kubeconfig --name minecraft-eks-cluster --region us-west-2
+            ###### aws eks update-kubeconfig --name online-shop-eks-cluster --region us-west-2
             - COPY the Cluster KubeConfig: `cat ~/.kube/config`
             - `COPY` the KubeConfig file content
                 - You can use your `Notepad` or any other `Text Editor` as well
@@ -484,12 +485,13 @@ Verify via Prometheus UI under Status > Targets
   - Click on `Scan Multibranch Pipeline Now`
 
 ### Confirm That All Microservices Branch Pipelines Succeeded (If Not, Troubleshoot)
+![pipeline success for microservices ](<pipeline successful.png>)
 
 ### SonarQube Code Inspection Result For All Microservices Source Code
-  
+  ![Sonaqube code inspection](sonaqube.png)
 
 ### Also Confirm You Have All Service Deployment/Docker Artifacts In DockerHub
-
+![docker images](<docker images.png>)
 
 ### PERFORM THE DEPLOYMENT IN THE STAGING ENVIRONMENT/NAMESPACE (EKS CLUSTER)
 - To perform the DEPLOYMENT in the staging Envrionment 
@@ -512,9 +514,9 @@ Verify via Prometheus UI under Status > Targets
   ### A. Test Application Access From the `Test/Stagging-Environment` Using `NodePort` of one of your Workers
   - SSH Back into your `Jenkins-CI` Server
       - RUN: `kubectl get svc -n test-env`
-      - **NOTE:** COPY the Exposed `NodePort Pod Number`
+      - **NOTE:** COPY the Exposed `NodePort Port Number`
+  ![node port](nodeport.png)
 
-  
   - Access The Application Running in the `Test Environment` within the Cluster
   - `Update` the EKS Cluster Security Group ***(If you've not already)***
     - To do this, navigate to `EC2`
@@ -522,8 +524,7 @@ Verify via Prometheus UI under Status > Targets
     - Click on `Edit Inbound Rules`: Port = `30000` and Source `0.0.0.0/0`
   - Open your Browser
   - Go to: http://YOUR_KUBERNETES_WORKER_NODE_IP:30000
-  ![TestEnv]()
-
+  ![online shop](onlineshop.png)
   - Stage Deployment Succeeded
 
 ### PERFORM THE DEPLOYMENT NOW TO THE PRODUCTION ENVIRONMENT/NAMESPACE (EKS CLUSTER)
@@ -548,19 +549,19 @@ Verify via Prometheus UI under Status > Targets
   ![ProdEnv]() 
       - To access the application running in the `Prod-Env`
       - Navigate back to the `Jenkins-CI` shell 
-      - RUN: `kubectl get svc`
+      - RUN: `kubectl get svc -n prod-env`
       - Copy the LoadBalancer DNS and Open on a TAB on your choice Browser http://PROD_LOADBALANCER_DNS
-      ![TestEnv]()
+      ![load balancer dns](<load balancer dns.png>)
 
-  - SonarQube Code Inspection Result For All Microservices Source Code
-  
+
   - Snyk SCA Test Result
-  
+  ![snyk scan](<snyk scan.png>)
 
   - Test/Scan Dockerfiles with Open Policy Agent (OPA)
   
 
   - Slack Continuous Feedback Alert
   
+![online shop dns](onlineshop-dns.png)
 
 ### Congratulations Your Deployment Was Successful

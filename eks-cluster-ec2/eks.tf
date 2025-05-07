@@ -2,10 +2,10 @@
 # This control plane can be used to attach self-managed, 
 # and aws managed nodes as well as you can create Fargate profiles.
 
-resource "aws_security_group" "minecraft-eks-cluster" {
-  name        = "minecraft-EKS-cluster-sg"
+resource "aws_security_group" "online-shop-eks-cluster" {
+  name        = "online-shop-EKS-cluster-sg"
   description = "Cluster communication with worker nodes"
-  vpc_id      = aws_vpc.minecraft-eks-cluster-main.id
+  vpc_id      = aws_vpc.online-shop-eks-cluster-main.id
 
   dynamic "ingress" {
     for_each = var.ingress_ports
@@ -42,7 +42,7 @@ resource "aws_security_group" "minecraft-eks-cluster" {
 # for example, to create managed node pools.
 
 
-resource "aws_iam_role" "minecraft-eks-cluster" {
+resource "aws_iam_role" "online-shop-eks-cluster" {
   name = "eks-cluster-${var.cluster_name}"
 
   assume_role_policy = <<POLICY
@@ -63,22 +63,22 @@ POLICY
 
 # Then we need to attach AmazonEKSClusterPolicy to this role.
 
-resource "aws_iam_role_policy_attachment" "minecraft-eks-cluster-policy" {
+resource "aws_iam_role_policy_attachment" "online-shop-eks-cluster-policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.minecraft-eks-cluster.name
+  role       = aws_iam_role.online-shop-eks-cluster.name
 }
 
 
 # specify two private and two public subnets. AWS Fargate can only use private subnets with NAT gateway to deploy your pods. 
 # Public subnets can be used for load balancers to expose your application to the internet.
 
-resource "aws_eks_cluster" "minecraft-eks-cluster" {
+resource "aws_eks_cluster" "online-shop-eks-cluster" {
   name     = var.cluster_name
   version  = var.cluster_version
-  role_arn = aws_iam_role.minecraft-eks-cluster.arn
+  role_arn = aws_iam_role.online-shop-eks-cluster.arn
 
   vpc_config {
-    security_group_ids      = [aws_security_group.minecraft-eks-cluster.id]
+    security_group_ids      = [aws_security_group.online-shop-eks-cluster.id]
     endpoint_private_access = false
     endpoint_public_access  = true
     public_access_cidrs     = ["0.0.0.0/0"]
@@ -91,5 +91,5 @@ resource "aws_eks_cluster" "minecraft-eks-cluster" {
     ]
   }
 
-  depends_on = [aws_iam_role_policy_attachment.minecraft-eks-cluster-policy]
+  depends_on = [aws_iam_role_policy_attachment.online-shop-eks-cluster-policy]
 }

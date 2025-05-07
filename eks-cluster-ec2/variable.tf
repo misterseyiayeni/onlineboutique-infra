@@ -1,5 +1,5 @@
 variable "cluster_name" {
-  default = "minecraft-eks-cluster"
+  default = "online-shop-eks-cluster"
 }
 
 variable "cluster_version" {

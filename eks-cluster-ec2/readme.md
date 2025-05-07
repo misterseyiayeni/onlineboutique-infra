@@ -50,7 +50,7 @@ terraform apply --auto-approve
 ```bash
 eksctl utils associate-iam-oidc-provider \
     --region us-west-2 \
-    --cluster minecraft-EKS-Cluster \
+    --cluster online-shop-EKS-Cluster \
     --approve
 ```
 
