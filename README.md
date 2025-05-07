@@ -1,7 +1,18 @@
 # Terraform CI/CD Infrastructure on AWS
 
-This Terraform module provisions a complete CI/CD environment in AWS using the `us-east-2` region. The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
+This Terraform module provisions a complete CI/CD environment in AWS using the `us-west-2` region. The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
 
+### EKS CLUSTER
+Cd into eks-cluster-ec2
+
+terraform init
+terraform plan
+terraform apply
+
+### this automatically setup your EKS cluster
+EKS cluster
+
+### CICD PIPELINE
 Cd into main-cicd
 
 terraform init
@@ -39,7 +50,7 @@ grafana
         - Copy the password and login to Jenkins
 ![jenkins signup](jenkins-signup.png)
 
-### Note:  Jenkins URL http://44.245.158.243:8080/
+### Note:  Jenkins URL 
 
 - **`NOTE:`** Copy the Outputed Password and Paste in the `Administrator password` in Jenkins
     - Plugins: Choose `Install Suggested Plugings` 
@@ -76,11 +87,8 @@ grafana
         - **ssh-agent**
         - **BlueOcean**
         - **Build Timestamp**
-        - **Prometheus Metrics Plugin**
-        - **Pipeline Utility Steps**
-        - **Terraform**
-        - **AWS Credentials Plugin**
-
+        - **Prometheus Metrics**
+  
     - Click on `Install`
     - Once all plugins are installed
     - Select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
@@ -133,6 +141,9 @@ grafana
         - Docker version: `latest`
       - Enable: `Install automatically` 
 ![Docker installations](<docker installation.png>)
+
+
+Apply and save
 
 4)  #### Credentials setup(SonarQube, Slack, DockerHub, Kubernetes and ZAP):
     - Click on `Manage Jenkins`
@@ -214,7 +225,7 @@ grafana
               - Click on `Set Up`
 
             - Generate a `Global Analysis Token`    *This is the Token you need for Authorization*
-              - Click on the `User Profile` icon at top right of SonarQube
+              - Click on the `User Profile / Administrator` icon at top right of SonarQube
               - Click on `My Account`
               - Click `Security`
               - `Generate Token:`   *Generate this TOKEN and Use in the Next Step to Create The SonarQube Credential* 
@@ -224,11 +235,13 @@ grafana
               - Click on `GENERATE`
               - NOTE: *`Save The Token Somewhere...`*   sqa_b39f9ce5e1312fe46ffc512f87b520726182e2c4
 
-          - ###### Store SonarQube Secret Token in Jenkins:
+          - ###### Store Credentials:
               - Navigate back to Jenkins http://JENKINS_PUBLIC_IP:8080
               - Click on `Manage Jenkins` 
                 - Click on `Jenkins System`
                 - Click `Global credentials (unrestricted)`
+
+          - ###### Store SonarQube Secret Token in Jenkins:     
               - Click on ``Add Credentials``
               - Kind: `Secret text`
               - Secret: `Paste the SonarQube TOKEN` value that we have created on the SonarQube server
@@ -301,8 +314,19 @@ grafana
                 - **NOTE:** *Seletct the KubeConfig file you saved locally*
             - ID: ``Kubernetes-Credential``
             - Description: `Kubernetes-Credential`
-            - Click on `Create`   
-      
+            - Click on `Create`  
+
+            - ###### Create The aws key and secret access key
+            - Navigate back to Jenkins
+            - Click on ``Add Credentials``
+                - Click on `Jenkins System`
+                - Click `Global credentials (unrestricted)`
+            - Kind:  Username with password
+            - Username: Your AWS Access Key ID
+            - Password: Your AWS Secret Access Key
+            - ID: aws-credentials (or any ID you'll reference in the pipeline)
+            - Description: AWS credentials for accessing EKS
+            
       5) ##### Create the ZAP Dynamic Application Security Testing Server Credential
          - ###### Start by Copy the `EC2 SSH Private Key File Content` of your `Jenkins-CI` Server
             - Open your `GitBash Terminal` or `MacOS Terminal` 
@@ -363,7 +387,7 @@ grafana
 
 4) ### 🛠 Step 1: Configure Prometheus to Scrape Metrics
 
-Update the prometheus.yml config file on the EC2 instance:
+Update the prometheus.yml config file on the Prometheus EC2 instance:
 ### path /etc/prometheus/prometheus.yml
 scrape_configs:
   - job_name: 'jenkins'
@@ -375,6 +399,8 @@ Save and restart Prometheus:
 sudo systemctl restart prometheus
 systemctl status prometheus
 Verify via Prometheus UI under Status > Targets
+- targets: ['<prometheus-ec2-ip>:9090/targets']
+
 ![prometheus Target](<prometheus target.png>)
 
 
@@ -395,7 +421,7 @@ Verify via Prometheus UI under Status > Targets
      - Click Import
 ![grafana display](<grafana display.png>)
 
-### 🚨 Step 4: Set Up Alerts
+### 🚨 Step 4: Set Up Alerts  (optional)
    - Grafana Alerts
    - In Grafana, go to Alerting > Contact Points
    - Add email, Slack, or webhook as a contact point
@@ -405,8 +431,9 @@ Verify via Prometheus UI under Status > Targets
 
 ### Pipeline creation (Make Sure To Make The Following Updates First)
 - UPDATE YOUR ``Jenkinsfiles...``
+
 - Update your `Frontend Service` - `OWASP Zap Server IP` and `EKS Worker Node IP` in the `Jenkinsfile` on `Line 80`
-  - `NOTE` to update the `Frontend Service`, you must `Switch` to the `Frontend Branch`
+  - `NOTE` to update the `Frontend Service`, you must `Switch` to the `app-Frontend-Branch`
 
 - Update the `EKS Worker Node IP` with yours in the `Jenkinsfile` on `Line 80`
 - Update your `Slack Channel Name` in the `Jenkinsfiles...` - `All Microservices`
