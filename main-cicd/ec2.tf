@@ -119,22 +119,30 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+    #values = ["ubuntu/images/hvm-ssd/ubuntu-noble-24.04-amd64-server-*"]
+    #values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
   }
 }
 
 ###JENKINS SERVERS PUBLIC SUBNETS
 # EC2 Instance with IAM Role
 resource "aws_instance" "jenkins_server" {
-  ami = data.aws_ami.amazon_linux_2.id
+  #ami = data.aws_ami.amazon_linux_2.id
+  ami = data.aws_ami.ubuntu.id
   instance_type          = "t2.large"
   subnet_id              = aws_subnet.public_subnet_az2.id
   key_name               = "postgreskey"
-  user_data              = file("jenkins-maven-ansible-setup.sh")
+  user_data              = file("jenkins.sh")
   vpc_security_group_ids = [aws_security_group.jenkins_security_group.id]
   iam_instance_profile = aws_iam_instance_profile.jenkins_instance_profile.name
 
@@ -187,18 +195,113 @@ resource "aws_iam_policy" "jenkins_policy" {
   description = "Policy to access Jenkins server"
   
   policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
+    "Version": "2012-10-17",
+    "Statement": [
+
+      # Jenkins basic EC2 permissions
       {
-        "Effect" : "Allow",
-        "Action" : [
+        "Effect": "Allow",
+        "Action": [
           "ec2:DescribeInstances",
           "ec2:DescribeInstanceStatus",
           "ec2:StartInstances",
           "ec2:StopInstances"
-          # Add additional permissions as needed for Jenkins access
         ],
-        "Resource" : "*"  # Adjust resource scope accordingly
+        "Resource": "*"
+      },
+
+      # Amazon EKS Cluster Policy (Core Actions)
+      {
+        "Sid": "AmazonEKSClusterPolicy",
+        "Effect": "Allow",
+        "Action": [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:UpdateAutoScalingGroup",
+          "ec2:AttachVolume",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:CreateRoute",
+          "ec2:CreateSecurityGroup",
+          "ec2:CreateTags",
+          "ec2:CreateVolume",
+          "ec2:DeleteRoute",
+          "ec2:DeleteSecurityGroup",
+          "ec2:DeleteVolume",
+          "ec2:DescribeRouteTables",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVolumes",
+          "ec2:DescribeVolumesModifications",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeDhcpOptions",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DetachVolume",
+          "ec2:ModifyInstanceAttribute",
+          "ec2:ModifyVolume",
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:DescribeAccountAttributes",
+          "ec2:DescribeAddresses",
+          "ec2:DescribeInternetGateways",
+          "ec2:DescribeInstanceTopology",
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:ApplySecurityGroupsToLoadBalancer",
+          "elasticloadbalancing:AttachLoadBalancerToSubnets",
+          "elasticloadbalancing:ConfigureHealthCheck",
+          "elasticloadbalancing:CreateListener",
+          "elasticloadbalancing:CreateLoadBalancer",
+          "elasticloadbalancing:CreateLoadBalancerListeners",
+          "elasticloadbalancing:CreateLoadBalancerPolicy",
+          "elasticloadbalancing:CreateTargetGroup",
+          "elasticloadbalancing:DeleteListener",
+          "elasticloadbalancing:DeleteLoadBalancer",
+          "elasticloadbalancing:DeleteLoadBalancerListeners",
+          "elasticloadbalancing:DeleteTargetGroup",
+          "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+          "elasticloadbalancing:DeregisterTargets",
+          "elasticloadbalancing:DescribeListeners",
+          "elasticloadbalancing:DescribeLoadBalancerAttributes",
+          "elasticloadbalancing:DescribeLoadBalancerPolicies",
+          "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeTargetGroupAttributes",
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetHealth",
+          "elasticloadbalancing:DetachLoadBalancerFromSubnets",
+          "elasticloadbalancing:ModifyListener",
+          "elasticloadbalancing:ModifyLoadBalancerAttributes",
+          "elasticloadbalancing:ModifyTargetGroup",
+          "elasticloadbalancing:ModifyTargetGroupAttributes",
+          "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+          "elasticloadbalancing:RegisterTargets",
+          "elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer",
+          "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
+          "kms:DescribeKey",
+          "eks:DescribeCluster"  # Important for update-kubeconfig
+        ],
+        "Resource": "*"
+      },
+
+      {
+        "Sid": "AmazonEKSClusterPolicySLRCreate",
+        "Effect": "Allow",
+        "Action": "iam:CreateServiceLinkedRole",
+        "Resource": "*",
+        "Condition": {
+          "StringEquals": {
+            "iam:AWSServiceName": "elasticloadbalancing.amazonaws.com"
+          }
+        }
+      },
+
+      {
+        "Sid": "AmazonEKSClusterPolicyENIDelete",
+        "Effect": "Allow",
+        "Action": "ec2:DeleteNetworkInterface",
+        "Resource": "*",
+        "Condition": {
+          "StringEquals": {
+            "ec2:ResourceTag/eks:eni:owner": "amazon-vpc-cni"
+          }
+        }
       }
     ]
   })

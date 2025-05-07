@@ -77,6 +77,10 @@ grafana
         - **BlueOcean**
         - **Build Timestamp**
         - **Prometheus Metrics Plugin**
+        - **Pipeline Utility Steps**
+        - **Terraform**
+        - **AWS Credentials Plugin**
+
     - Click on `Install`
     - Once all plugins are installed
     - Select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
@@ -218,7 +222,7 @@ grafana
                 - Type: `Global Analysis Token`
                 - Expires in: `30 days`
               - Click on `GENERATE`
-              - NOTE: *`Save The Token Somewhere...`*   72a5d7f0d14bbb9f71e5d9dc741531f26ecdfcf3
+              - NOTE: *`Save The Token Somewhere...`*   sqa_b39f9ce5e1312fe46ffc512f87b520726182e2c4
 
           - ###### Store SonarQube Secret Token in Jenkins:
               - Navigate back to Jenkins http://JENKINS_PUBLIC_IP:8080
@@ -274,6 +278,7 @@ grafana
 
         - ###### Get Cluster Credential From Kube Config
             - `SSH` back into your `Jenkins-CI` server
+            ###  aws configure
             - RUN the command: `aws eks update-kubeconfig --name <clustername> --region <region>`
             ###### aws eks update-kubeconfig --name minecraft-eks-cluster --region us-west-2
             - COPY the Cluster KubeConfig: `cat ~/.kube/config`
@@ -312,7 +317,7 @@ grafana
             - Scope: Select `Global......`
             - Type: Select `SSH Username with Private Key`
             - ID and Description: `OWASP-Zap-Credential`
-            - Username: `amazon-linux`
+            - Username: `ubuntu`
             - Private key: Select
               - Key: Click on `Add`
               - Key: `Paste The Private Key Content You Copied`
@@ -402,8 +407,10 @@ Verify via Prometheus UI under Status > Targets
 - UPDATE YOUR ``Jenkinsfiles...``
 - Update your `Frontend Service` - `OWASP Zap Server IP` and `EKS Worker Node IP` in the `Jenkinsfile` on `Line 80`
   - `NOTE` to update the `Frontend Service`, you must `Switch` to the `Frontend Branch`
+
 - Update the `EKS Worker Node IP` with yours in the `Jenkinsfile` on `Line 80`
 - Update your `Slack Channel Name` in the `Jenkinsfiles...` - `All Microservices`
+
 - Update `SonarQube projectName` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `SonarQube projectKey` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `DockerHub username` of your Microservices in the `Jenkinsfiles...` - `All Microservices`, provide Yours
@@ -417,7 +424,7 @@ Verify via Prometheus UI under Status > Targets
     - BRANCH SOURCES:
       - Git:
         - Project Repository
-          - Repository URL: `Provide Your Project Repo Git URL` (the one you created at the beginning)
+          - Repository URL: `Provide Your microservices Project Repo Git URL` 
     - BEHAVIORS
       - Set it to: `Discover Branches` and
       - Click `Add`
@@ -433,7 +440,8 @@ Verify via Prometheus UI under Status > Targets
     - Click on `Apply` and `Save`
     
     - CONFIGURE MULTIBRANCH PIPELINE WEBHOOK
-      - Copy this URL and Update the Jenkins IP (to yours): `http://PROVIDE_YOUR_JENKINS_IP:8080/multibranch-webhook-trigger/invoke?token=automation` 
+      - Copy this URL and Update the Jenkins IP (to yours): `http://PROVIDE_YOUR_JENKINS_IP:8080/multibranch-webhook-trigger/invoke?token=automation`
+
       - Navigate to your `Project Repository`
         - Click on `Settings` in the Repository
         - Click on `Webhooks`
