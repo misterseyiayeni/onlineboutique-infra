@@ -2,6 +2,45 @@
 
 This Terraform module provisions a complete CI/CD environment in AWS using the `us-west-2` region. The setup includes a VPC, public subnets, routing, EC2 instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and IAM roles configured for access and automation.
 
+Navigate to onlineboutique-infra/eks-cluster-ec2. Edit provider.tf and change the value of the "Name" to the AWS user account you intend to use (shown below)
+
+provider "aws" {
+  region = "us-west-2"
+
+  default_tags {
+    tags = {
+      Name = "insert_aws_account_name_here"
+    }
+  }
+}
+
+Navigate to onlineboutique-infra/main-cicd. Edit ec2.tf and change the value of the "Name" to the AWS user account you intend to use (shown below):
+
+provider "aws" {
+  region = "us-west-2"
+
+  default_tags {
+    tags = {
+      Name = "insert_aws_account_name_here"
+    }
+  }
+}
+
+Enter this to create a key for postgres
+
+aws ec2 create-key-pair --key-name postgreskey --query "KeyMaterial" --output text > postgreskey.pem
+
+Verify
+aws ec2 describe-key-pairs --query "KeyPairs[*].KeyName"
+
+Should show:
+
+'''
+[
+    "postgreskey"
+]
+'''
+
 ### EKS CLUSTER
 Cd into eks-cluster-ec2
 
@@ -12,35 +51,35 @@ terraform apply
 ### this automatically setup your EKS cluster
 EKS cluster
 
-### CICD PIPELINE
+#### CICD PIPELINE
 Cd into main-cicd
 
 terraform init
 terraform plan
 terraform apply
 
-### this automatically setup your instances for
+#### this automatically setup your instances for
 sonaqube
 jenkins
 prometheus
 grafana
 
-### The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
+#### The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
 
-✅ Core Components & Flow
-🏗️ Terraform-Based Provisioning infrastructure (EC2 instances, VPC, subnets, security groups)
-☁️ AWS Cloud: The platform hosting all EC2 instances
-🔁 CI/CD Pipeline (Orchestrated by Jenkins)
-🧱 Jenkins
-🧪 SonarQube: Used for SAST (Static Application Security Testing).
-🛡 Snyk: Performs Software Composition Analysis (SCA) for dependency vulnerabilities.
-🐳 Docker: Jenkins builds and tags Docker images for microservices.
-📜 OPA/Conftest: Scans the Dockerfile for misconfigurations using policy-as-code
-☸️ Kubernetes (EKS or self-managed): The target environment for application deployment.
-🔍 Observability: Prometheus + Grafana 📊 Prometheus 📈 Grafana
-📣 Notifications: Slack Integration is configured in Jenkins:
-![CICD architecture ](architecture.png)
-![microservice Architecture](architecture-1.png)
+- ✅ Core Components & Flow
+- 🏗️ Terraform-Based Provisioning infrastructure (EC2 instances, VPC, subnets, security groups)
+- ☁️ AWS Cloud: The platform hosting all EC2 instances
+- 🔁 CI/CD Pipeline (Orchestrated by Jenkins)
+- 🧱 Jenkins
+- 🧪 SonarQube: Used for SAST (Static Application Security Testing).
+- 🛡 Snyk: Performs Software Composition Analysis (SCA) for dependency vulnerabilities.
+- 🐳 Docker: Jenkins builds and tags Docker images for microservices.
+- 📜 OPA/Conftest: Scans the Dockerfile for misconfigurations using policy-as-code
+- ☸️ Kubernetes (EKS or self-managed): The target environment for application deployment.
+- 🔍 Observability: Prometheus + Grafana 📊 Prometheus 📈 Grafana
+- 📣 Notifications: Slack Integration is configured in Jenkins:
+- ![CICD architecture ](architecture.png)
+- ![microservice Architecture](architecture-1.png)
 ---
 ### Jenkins setup
 1) #### Access Jenkins

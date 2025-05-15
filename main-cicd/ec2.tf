@@ -12,7 +12,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Name = "minecraft"
+      Name = "onlineboutique-dev"
     }
   }
 }
