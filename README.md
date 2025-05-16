@@ -66,9 +66,10 @@ This will also automatically setup your instances for:
 - ![CICD architecture ](architecture.png)
 - ![microservice Architecture](architecture-1.png)
 
-#### The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
+The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
 
-- ✅ Core Components & Flow
+#### Core Components & Flow
+
 - 🏗️ Terraform-Based Provisioning infrastructure (EC2 instances, VPC, subnets, security groups)
 - ☁️ AWS Cloud: The platform hosting all EC2 instances
 - 🔁 CI/CD Pipeline (Orchestrated by Jenkins)
@@ -79,11 +80,16 @@ This will also automatically setup your instances for:
 - 📜 OPA/Conftest: scans the Dockerfile for misconfigurations using policy-as-code
 - ☸️ Kubernetes (EKS or self-managed): The target environment for application deployment.
 - 🔍 Observability: 📊 Prometheus for gathering of metrics + 📈 Grafana for visualization of metrics
-- 📣 Notifications: Slack Integration is configured in Jenkins:
+- 📣 Notifications: Slack Integration is configured in Jenkins.
 
 
 ### Jenkins setup
 1) #### Access Jenkins
+
+Retrieve your AWS EC2 Public IP by running:
+
+aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress"
+
     Copy your Jenkins Public IP Address and paste on the browser = ExternalIP:8080
     - Copy the Path from the Jenkins UI to get the Administrator Password
         - Make sure you're still logged into your Jenkins Instance
