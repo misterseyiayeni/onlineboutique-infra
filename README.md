@@ -63,6 +63,13 @@ This will also automatically setup your instances for:
 - prometheus
 - grafana
 
+Get the IP external addresses of the following resources and save for use:
+
+- Grafana_server_http_url = "http://xx.xx.xx.xx:xx"
+- Prometheus_server_http_url = "http://xx.xx.xx.xx:xx"
+- SonaQube_server_http_url = "http://xx.xx.xx.xx:xx"
+- jenkins_server_http_url = "http://xx.xx.xx.xx:xx"
+
 - ![CICD architecture ](architecture.png)
 - ![microservice Architecture](architecture-1.png)
 
@@ -89,12 +96,10 @@ The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on 
 Retrieve your AWS EC2 Public IP by running:
 
 aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress"
-
-    Copy your Jenkins Public IP Address and paste on the browser = ExternalIP:8080
-    - Copy the Path from the Jenkins UI to get the Administrator Password
-        - Make sure you're still logged into your Jenkins Instance
-        - Run the command: `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
-        - Copy the password and login to Jenkins
+    - Copy your Jenkins Public IP address and paste on the browser: http://<ExternalIP>:8080
+    - Copy the Path from the Jenkins UI to get the Administrator password
+      - On AWS console, click on the EC2 instance, click Connect using EC2 Instance Connect, and run the command once logged in: `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
+      - Copy the password and log into Jenkins
 ![jenkins signup](jenkins-signup.png)
 
 ### Note:  Jenkins URL 
@@ -104,9 +109,10 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
     - Provide 
         - Username: **`admin`**
         - Password: **`admin`**
-        - `Name` and `Email` can also be admin. You can use `admin` all, as its a poc.
-    - Click `Continue`
-    - Click on `Start using Jenkins`
+        - `Name` can be admin and for `Email` you can generate an random email address.
+    - Click `Save and Continue`
+    - Click on `Save and Finish`
+    - - Click on `Start using Jenkins`
 ![getting started](<Screen Shot 2023-04-24 at 8.49.43 AM.png>)
 
 2)  #### Plugin installations:
@@ -137,25 +143,23 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
         - **Prometheus Metrics**
   
     - Click on `Install`
-    - Once all plugins are installed
-    - Select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
+    - Once all plugins are installed select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
 ![jenkins restart to load pluggins](<jenkins plugins restart.png>)
 - Refresh your Browser and Log back into Jenkins
-    - Once you log back into Jenkins
 
 3)  #### Global tools configuration:
-    - Click on Manage Jenkins -->> Global Tool Configuration
-    - Click on tools -->> Global Tool Configuration
+    - Click on Manage Jenkins -->> Tools -->> Global Tool Configuration
+
 ![Global Tool Configuration](<jenkins global tool config.png>)
 
 - **JDK** 
         - Click on `Add JDK` -->> Make sure **Install automatically** is enabled 
         
-        **Note:** By default the **Install Oracle Java SE Development Kit from the website** make sure to close that option by clicking on the image as shown below.
-        * Name: `JDK17`
-        * Click on `Add installer`
-        * Select `Install from adoptium.net` 
-        * Version: **`jdk-17.0.8.1+1`**
+        Note: By default the **Install Oracle Java SE Development Kit from the website** make sure to close that option by clicking on the "x" icon on the right-hand side of the box.
+        - Name: `JDK17`
+        - Click on `Add installer` and select `Install from adoptium.net`
+        - Version: `jdk-17.0.8.1+1`
+  
 ![JDK Pluggin](<openjdk plugins.png>)
 
 - **Gradle Installation**
@@ -166,41 +170,46 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
 ![Gradle setup](gradle-setup.png)
 
 - **SonarQube Scanner** 
-      - Click on `Add SonarQube Scanner` 
+      - Click on `SonarScanner for MSBuild` 
       - Name: `SonarScanner`
-      - Enable: `Install automatically` 
+      - Enable: `Install automatically`
 ![SonarQube Scanner](sonascanner.png)
 
 - **Snyk Installations** 
       - Click on ``Add Snyk`
       - Name: `Snyk`
       - Enable: `Install automatically` 
-        - Version: `latest`
-        - Update policy interval (hours): `24`
-        - OS platform architecture: `Auto-detection`
+      - Version: `latest`
+      - Update policy interval (hours): `24`
+      - OS platform architecture: `Auto-detection`
+
 ![Snyk Installations](snyk-install.png)
 
 - **Docker installations** 
       - Click on `Add Docker` 
       - Name: `Docker`
+      - Enable: `Install automatically`
       - Click on `Add installer`
-        - Select `Download from docker.com`
-        - Docker version: `latest`
-      - Enable: `Install automatically` 
-![Docker installations](<docker installation.png>)
+      - Select `Download from docker.com`
+      - Docker version: `latest`
 
+![Docker installations](<docker installation.png>)
 
 Apply and save
 
 4)  #### Credentials setup(SonarQube, Slack, DockerHub, Kubernetes and ZAP):
     - Click on `Manage Jenkins`
       - Click on `Credentials`
-      - Click on `Jenkins - System`
+      - Click on `Stores scoped to Jenkins`
+      - Click on `System`
       - Click on `Global Credentials (Unrestricted)`
       - Click on `Add Credentials`
       1)  ##### SonarQube secret token (SonarQube-Token)
           - ###### Generating SonarQube secret token:
               - Login to your SonarQube Application (http://SonarServer-Sublic-IP:9000)
+              - If the server not come up on the browser, then check if the service is deployed by entering: sudo systemctl status sonar
+              - If the service is not found, then connect to the server and run the shell script SonaQube-setup.sh
+              - Try to connect again to the SonarQube server
                 - Default username: **`admin`** 
                 - Default password: **`admin`**
             - Click on `Login`
@@ -208,67 +217,68 @@ Apply and save
                 - New Password: **`adminadmin`**
                 - Confirm Password: **`adminadmin`**
 
-          ### click on administration and click on projects, management
+            - Click on administration and click on projects, management
 
-              - Click on `create project` *(Create the `app-shipping-service` microservice test project)*
+              - Click on `create project` (Create the `app-shipping-service` microservice test project)
                 - Project display name: `app-shipping-service`
-                - Display key: `app-shipping-service`
+                - Project key: `app-shipping-service`
                 - Main branch name: `app-shipping-service` 
               
-              - Click on `Projects` *(Create the `app-recommendation-service` microservice test project)*
+              - Click on `Projects` (Create the `app-recommendation-service` microservice test project)
                 - Project display name: `app-recommendation-service`
-                - Display key: `app-recommendation-service`
+                - Project key: `app-recommendation-service`
                 - Main branch name: `app-recommendation-service` 
               
-              - Click on `Projects` *(Create the `app-product-catalog-service` microservice test project)*
+              - Click on `Projects` (Create the `app-product-catalog-service` microservice test project)
                 - Project display name: `app-product-catalog-service`
-                - Display key: `app-product-catalog-service`
+                - Project key: `app-product-catalog-service`
                 - Main branch name: `app-product-catalog-service` 
               
-              - Click on `Projects` *(Create the `app-payment-service` microservice test project)*
+              - Click on `Projects` (Create the `app-payment-service` microservice test project)
                 - Project display name: `app-payment-service`
-                - Display key: `app-payment-service`
+                - Project key: `app-payment-service`
                 - Main branch name: `app-payment-service` 
               
-              - Click on `Projects` *(Create the `app-loadgenerator-service` microservice test project)*
+              - Click on `Projects` (Create the `app-loadgenerator-service` microservice test project)
                 - Project display name: `app-loadgenerator-service`
-                - Display key: `app-loadgenerator-service`
+                - Project key: `app-loadgenerator-service`
                 - Main branch name: `app-loadgenerator-service` 
               
-              - Click on `Projects` *(Create the `app-frontend-service` microservice test project)*
+              - Click on `Projects` (Create the `app-frontend-service` microservice test project)
                 - Project display name: `app-frontend-service`
-                - Display key: `app-frontend-service`
+                - Project key: `app-frontend-service`
                 - Main branch name: `app-frontend-service`
               
-              - Click on `Projects` *(Create the `app-email-service` microservice test project)*
+              - Click on `Projects` (Create the `app-email-service` microservice test project)
                 - Project display name: `app-email-service`
-                - Display key: `app-email-service`
+                - Project key: `app-email-service`
                 - Main branch name: `app-email-service` 
               
               - Click on `Projects` *(Create the `app-database` microservice test project)*
                 - Project display name: `app-database`
-                - Display key: `app-database`
+                - Project key: `app-database`
                 - Main branch name: `app-database` 
               
-              - Click on `Projects` *(Create the `app-currency-service` microservice test project)*
+              - Click on `Projects` (Create the `app-currency-service` microservice test project)
                 - Project display name: `app-currency-service`
-                - Display key: `app-currency-service`
+                - Project key: `app-currency-service`
                 - Main branch name: `app-currency-service` 
               
-              - Click on `Projects` *(Create the `app-checkout-service` microservice test project)*
+              - Click on `Projects` (Create the `app-checkout-service` microservice test project)
                 - Project display name: `app-checkout-service`
-                - Display key: `app-checkout-service`
+                - Project key: `app-checkout-service`
                 - Main branch name: `app-checkout-service` 
               
-              - Click on `Projects` *(Create the `app-cart-service` microservice test project)*
+              - Click on `Projects` (Create the `app-cart-service` microservice test project)
                 - Project display name: `app-cart-service`
-                - Display key: `app-cart-service`
+                - Project key: `app-cart-service`
                 - Main branch name: `app-cart-service` 
               
-              - Click on `Projects` *(Create the `app-ad-serverice` microservice test project)*
+              - Click on `Projects` (Create the `app-ad-serverice` microservice test project)
                 - Project display name: `app-ad-serverice`
-                - Display key: `app-ad-serverice`
-                - Main branch name: `app-ad-serverice` 
+                - Project key: `app-ad-serverice`
+                - Main branch name: `app-ad-serverice`
+                
               - Click on `Set Up`
 
             - Generate a `Global Analysis Token`    *This is the Token you need for Authorization*
