@@ -486,7 +486,7 @@ Apply and save
             - Credentials: select the `Slack-Credential` credentials (created above) 
             - Default channel / member id: `#PROVIDE_YOUR_CHANNEL_NAME_HERE`
             - Click on `Test Connection`
-            - Click on `Apply` and `Save`
+            - If successful, click on `Apply` and `Save`
 
 4) ### 🛠 Step 1: Configure Prometheus to Scrape Metrics
 
@@ -494,13 +494,41 @@ Update the prometheus.yml config file on the Prometheus EC2 instance:
 ### path /etc/prometheus/prometheus.yml
 scrape_configs:
   - job_name: 'jenkins'
-    metrics_path: /prometheus
-    static_configs:
-      - targets: ['<jenkins-ec2-ip>:8080']
+  - metrics_path: /prometheus
+static_configs:
+  - targets: ['<jenkins-ec2-ip>:8080']
 
 Save and restart Prometheus:
-sudo systemctl restart prometheus
-systemctl status prometheus
+- sudo systemctl restart prometheus
+- systemctl status prometheus
+
+Ensure the yml file looks like this:
+
+lobal:
+  scrape_interval: 15s
+  external_labels:
+    monitor: 'prometheus'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+  - job_name: 'node'
+    ec2_sd_configs:
+      - region: us-east-1
+        port: 9100
+  - job_name: 'jenkins'
+    metrics_path: /prometheus
+    ec2_sd_configs:
+      - region: us-east-1
+        port: 8080
+        filters:
+          - name: tag:Application
+            values:
+              - jenkins
+    static_configs:
+     - targets: ['JENKINS_SERVER_IP'] # should replace with the jenkins IP
+
 Verify via Prometheus UI under Status > Targets
 - targets: ['<prometheus-ec2-ip>:9090/targets']
 
@@ -509,6 +537,7 @@ Verify via Prometheus UI under Status > Targets
 
 ### 🛠 Step 2: Connect Prometheus as Data Source in Grafana
      - Log in to Grafana UI
+     - Default username/password: admin; change to adminadmin
      - Navigate to Settings > Data Sources
      - Click Add Data Source
      - Select Prometheus
@@ -526,10 +555,25 @@ Verify via Prometheus UI under Status > Targets
 
 ### 🚨 Step 4: Set Up Alerts  (optional)
    - Grafana Alerts
-   - In Grafana, go to Alerting > Contact Points
+   - In Grafana, go to Alerting > Notification channels
    - Add email, Slack, or webhook as a contact point
    - Create an Alert Rule (e.g., high CPU on Jenkins or failed jobs)
    - Assign to dashboard panels
+
+   If your Grafana version is 7.3.4, then do the foloowing:
+   - ✅ Step 1: Open a Dashboard Panel
+    - 1️⃣ Go to your Grafana Dashboard (where Jenkins metrics are displayed).
+    - 2️⃣ Click Edit Panel on the panel where you want alerts.
+
+   - ✅ Step 2: Enable Alerts in the Panel
+    - 1️⃣ Inside the panel settings, navigate to the Alerts tab.
+    - 2️⃣ Click "Create Alert" (this is where you set conditions).
+    - 3️⃣ Configure your Thresholds (e.g., CPU > 80% triggers an alert).
+    - 4️⃣ Set the Evaluation Frequency (e.g., check every 30 seconds).
+
+  - ✅ Step 3: Attach Notification Channel
+    - 1️⃣ Select the Notification Channel (created earlier).
+    - 2️⃣ Click Save to apply the alert rule to the panel.
 
 ### Pipeline creation (Make Sure To Make The Following Updates First)
 - UPDATE YOUR ``Jenkinsfiles...``
