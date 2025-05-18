@@ -28,10 +28,11 @@ provider "aws" {
 
 Enter this to create a key for "postgres":
 
-aws ec2 create-key-pair --key-name postgreskey --query "KeyMaterial" --output text > postgreskey.pem
+- aws ec2 create-key-pair --key-name postgreskey --query "KeyMaterial" --output text > postgreskey.pem
 
 Verify
-aws ec2 describe-key-pairs --query "KeyPairs[*].KeyName"
+- aws ec2 describe-key-pairs --query "KeyPairs[*].KeyName"
+- Ensure that the provate key is downloaded to your machine
 
 Should show:
 
@@ -40,6 +41,36 @@ Should show:
     "postgreskey"
 ]
 '''
+
+If you encounter an issue using SSH to log into an EC2 instance, do the following:
+
+- 1️⃣ Generate a New Key Pair Locally (On Your Mac):
+
+ssh-keygen -t rsa -b 4096 -f new-key.pem
+
+This creates new-key.pem (private key) and new-key.pem.pub (public key).
+Store the private key (new-key.pem) securely—you’ll need it for future SSH logins.
+
+- 2️⃣ Add the New Public Key to the Instance: Inside the EC2 Instance Connect session, run:
+
+echo "PASTE_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
+Replace "PASTE_PUBLIC_KEY_HERE" with the contents of new-key.pem.pub.
+
+This allows SSH access using the new key.
+
+- 3️⃣ Set Proper Permissions:
+
+chmod 600 ~/.ssh/authorized_keys
+
+4️⃣ Exit the EC2 Instance Connect session.
+
+Then SSH into Your Instance Using the New Key
+
+- 1️⃣ Try connecting with your new private key:
+
+ssh -i new-key.pem ubuntu@<EC2-Public-IP>
+
+Replace <EC2-Public-IP> with your instance’s public IP address.
 
 #### Amazon Elastic Kubernetes Service (EKS) CLUSTER
 cd into eks-cluster-ec2 and enter:
@@ -277,9 +308,7 @@ Apply and save
               - Click on `Projects` (Create the `app-ad-serverice` microservice test project)
                 - Project display name: `app-ad-serverice`
                 - Project key: `app-ad-serverice`
-                - Main branch name: `app-ad-serverice`
-                
-              - Click on `Set Up`
+                - Main branch name: `app-ad-serverice
 
             - Generate a `Global Analysis Token`    *This is the Token you need for Authorization*
               - Click on the `User Profile / Administrator` icon at top right of SonarQube
@@ -307,23 +336,40 @@ Apply and save
               - Click on `Create`
 
       2)  ##### Slack secret token (slack-token)
-          - ###### Get The Slack Token: 
-              - Slack: https://join.slack.com/t/jjtechtowerba-zuj7343/shared_invite/zt-24mgawshy-EhixQsRyVuCo8UD~AbhQYQ
-              - Navigate to the Slack "Channel you created": `YOUR_INITIAL-devsecops-cicd-alerts`
-              - Click on your `Channel Drop Down`
-              - Click on `Integrations` and Click on `Add an App`
-              - Click on `Jenkins CI VIEW` and Click on `Configuration`
-              - Click on `Add to Slack`, Click on the Drop Down and `Select your Channel`
-              - Click on `Add Jenkins CI Integration`
-              - **`NOTE:`** *The TOKEN is on Step 3*
+          - ###### Get The Slack Token:
+          If you don't have a Slack channel or workspace to start with, do the following:
+
+            - 1️⃣ Create a New Slack Workspace
+              - Go to Slack Signup
+              - Click “Create a Workspace”.
+              - Enter your work email and click “Continue”.
+              - Slack will send a verification code—enter it to proceed.
+              - Name your workspace (e.g., DevSecOps-Team).
+              - Set up your default Slack channel (e.g., cicd-alerts).
+              - Invite your team (or skip this for now).
+              - Click “Finish”—your workspace is ready! 🎉
+
+            - 2️⃣ Create a Slack Channel for Jenkins Alerts
+              - Inside Slack, click “Add a channel”.
+              - Click “Create a channel”.
+              - Set your channel name (e.g., devsecops-alerts).
+              - Choose Public (for all workspace members) or Private (for specific users).
+              - Click “Create” and invite team members. 
+              - ON Slack (web interface), navifate to the channel you created in the format `YOUR_INITIAL-devsecops-cicd-alerts`.
+              - Click on your `Channel Drop Down`.
+              - Click on `Integrations` and Click on `Add an App`.
+              - Click on `Jenkins CI` and Click on `Install`.
+              - On the window that opens, click on `Add to Slack`.
+              - Click on `Choose a Channel`.
+              - Click on `Add Jenkins CI Integration`.
+              - Scroll down the page and copy the token under Integaration settings.
 
           - ###### Create The Slack Credential For Jenkins:
-              - Click on ``Add Credentials``
-                - Click on `Jenkins System`
-                - Click `Global credentials (unrestricted)`
+              - Go back to Jekins and navigate to `Manage Jenkins` >> `Credentials` >> `System`
+              - Click `Global credentials (unrestricted)` >> `Add Credentials`
               - Kind: Secret text            
-              - Secret: Place the Integration Token Credential ID (Note: Generate for slack setup)
-              - ID: ``Slack-Credential``
+              - Secret: Place the Integration Token Credential ID copied in the step above (Note: Generate for slack setup)
+              - ID: `Slack-Credential`
               - Description: `Slack-Credential`
               - Click on `Create`  
 
@@ -336,9 +382,8 @@ Apply and save
                 - **NOTE:** *If you have an account `Sign in` If not `Sign up`*
 
           - ###### DockerHub Credential (Username and Password)
-	          - Click on ``Add Credentials``
-                - Click on `Jenkins System`
-                - Click `Global credentials (unrestricted)`
+	          - On Jenkins, navigate to `Manage Jenkins` >> `Credentials` >> `System`
+            - Click `Global credentials (unrestricted)` >> `Add Credentials`
 	          - Kind: Username with password                  
 	          - Username: ``YOUR USERNAME``
 	          - Password: ``YOUR PASSWORD``
@@ -371,7 +416,7 @@ Apply and save
                 - **NOTE:** *Seletct the KubeConfig file you saved locally*
             - ID: ``Kubernetes-Credential``
             - Description: `Kubernetes-Credential`
-            - Click on `Create`  
+            - Click on `Create`
 
             - ###### Create The aws key and secret access key
             - Navigate back to Jenkins
@@ -383,9 +428,10 @@ Apply and save
             - Password: Your AWS Secret Access Key
             - ID: aws-credentials (or any ID you'll reference in the pipeline)
             - Description: AWS credentials for accessing EKS
+            - Click on `Create`
             
       5) ##### Create the ZAP Dynamic Application Security Testing Server Credential
-         - ###### Start by Copy the `EC2 SSH Private Key File Content` of your `Jenkins-CI` Server
+         - ###### Start by copying the `EC2 SSH Private Key File Content` of your `Jenkins-CI` Server
             - Open your `GitBash Terminal` or `MacOS Terminal` 
             - Navigate to the Location where your `Jenkins-CI` Server SSH Key is Stored *(Usually in **Downloads**)*
             - Run the Command `cat /Your_Key_PATH/YOUR_SSH_KEY_FILE_NAME.pem`
@@ -399,7 +445,7 @@ Apply and save
             - Type: Select `SSH Username with Private Key`
             - ID and Description: `OWASP-Zap-Credential`
             - Username: `ubuntu`
-            - Private key: Select
+            - Private key: Select `Enter directly`
               - Key: Click on `Add`
               - Key: `Paste The Private Key Content You Copied`
             - Click on `Create`
@@ -408,8 +454,8 @@ Apply and save
          - ###### Navigate to: https://snyk.com/
             - Click on `Sign Up`
             - Select `GitHub`
-                - *Once you're login to your **Snyk** account*
-            - Click on `Your Name` below `Help` on the Botton left hand side of your Snyk Account
+                - *Once you've logged into your **Snyk** account*
+            - Click on `Your Name` below `Help` on the bottom left hand side of your Snyk Account
             - Click on `Account Settings`
             - Auth Token (KEY): Click on `Click To Show`
             - **COPY** the TOKEN and SAVE somewhere
