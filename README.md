@@ -488,6 +488,11 @@ Apply and save
             - Click on `Test Connection`
             - If successful, click on `Apply` and `Save`
 
+    #### Configure AWS CLI on Jenkins CI server
+      - Log into the Jenkins server
+      - Enter: aws configure
+
+
 4) ### 🛠 Step 1: Configure Prometheus to Scrape Metrics
 
 Update the prometheus.yml config file on the Prometheus EC2 instance:
@@ -561,11 +566,11 @@ Verify via Prometheus UI under Status > Targets
    - Assign to dashboard panels
 
    If your Grafana version is 7.3.4, then do the foloowing:
-   - ✅ Step 1: Open a Dashboard Panel
+  - ✅ Step 1: Open a Dashboard Panel
     - 1️⃣ Go to your Grafana Dashboard (where Jenkins metrics are displayed).
     - 2️⃣ Click Edit Panel on the panel where you want alerts.
 
-   - ✅ Step 2: Enable Alerts in the Panel
+  - ✅ Step 2: Enable Alerts in the Panel
     - 1️⃣ Inside the panel settings, navigate to the Alerts tab.
     - 2️⃣ Click "Create Alert" (this is where you set conditions).
     - 3️⃣ Configure your Thresholds (e.g., CPU > 80% triggers an alert).
@@ -579,25 +584,42 @@ Verify via Prometheus UI under Status > Targets
 - UPDATE YOUR ``Jenkinsfiles...``
 
 - Update your `Frontend Service` - `OWASP Zap Server IP` and `EKS Worker Node IP` in the `Jenkinsfile` on `Line 100`
-  - `NOTE` to update the `Frontend Service`, you must `Switch` to the `Frontend Branch`
+  - `NOTE` to update the `Frontend Service`, you must `Switch` to the `Frontend Branch`by do the following:
+    - Switch to the Frontend Branch: git checkout app-frontend-service
+    - Verify You're on the Right Branch: git branch
+
 - Update the `EKS Worker Node IP` with yours in the `Jenkinsfile` on `Line 100`
 <!-- sh 'ssh -o StrictHostKeyChecking=no ubuntu@35.90.100.75 "docker run -t zaproxy/zap-weekly zap-baseline.py -t http://44.244.36.98:30000/" || true' -->
+To do this you need to locate the Kubernetes worker notes by doing the following:
+  - Download the Correct kubectl Binary (For macOS (Apple Silicon - M1/M2))
+    - curl -LO "https://dl.k8s.io/release/v1.29.0/bin/darwin/amd64/kubectl"
+  - Make kubectl Executable
+    - chmod +x kubectl
+  - Move kubectl to System Path
+    - sudo mv kubectl /usr/local/bin/
+  - Verify Installation
+    - kubectl version --client
+  - Connect to your EKS cluster
+    - aws eks update-kubeconfig --name <YOUR_CLUSTER_NAME> --region <AWS_REGION>
+  - Verify your EKS nodes with:
+    - kubectl get nodes -o wide
 
+The ZAP server is Jenkins CI server.
+
+**Note: This part is to be completed in all microservice branches**
 - Update your `Slack Channel Name` in the `Jenkinsfiles...` - `All Microservices` on `Line 126`
 <!-- slackSend channel: '#all-minecraftapp', -->
-
-
 - Update `SonarQube projectName` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `SonarQube projectKey` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `DockerHub username` of your Microservices in the `Jenkinsfiles...` - `All Microservices`, provide Yours
-- Update the `DockerHub username/Image name` in all the `deployment.yaml` files for the different environments `test-env` and `prod-env` folders across `Every Single Microservice Branch`
+- Update the `DockerHub username/Image name` in all the `deployment.yaml` files for `test-env` and `prod-env` folders in `deploy-envs` folder across `Every Single Microservice Branch`
     
     - Log into Jenkins: http://Jenkins-Public-IP:8080/
     - Click on `New Item`
     - Enter an item name: `Online-Shop-Microservices-CICD-Automation` 
     - Select the category as **`Multibranch Pipeline`**
     - Click `OK`
-    - BRANCH SOURCES:
+    - At BRANCH SOURCES, clock `Add source`:
       - Git:
         - Project Repository
           - Repository URL: `Provide Your microservices Project Repo Git URL` 
@@ -618,7 +640,7 @@ Verify via Prometheus UI under Status > Targets
     - CONFIGURE MULTIBRANCH PIPELINE WEBHOOK
       - Copy this URL and Update the Jenkins IP (to yours): `http://PROVIDE_YOUR_JENKINS_IP:8080/multibranch-webhook-trigger/invoke?token=automation`
 
-      - Navigate to your `Project Repository`
+      - Navigate to your `Project Repository` on GitHub
         - Click on `Settings` in the Repository
         - Click on `Webhooks`
         - Click on `Add Webhook`
