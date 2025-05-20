@@ -733,8 +733,11 @@ The ZAP server is Jenkins CI server.
     - Click on `Edit Inbound Rules`: Port = `30000` and Source `0.0.0.0/0`
   - Open your Browser
   - Go to: http://YOUR_KUBERNETES_WORKER_NODE_IP:30000
-  ![online shop](onlineshop.png)
-  - Stage Deployment Succeeded
+  
+  ![Website on Node 1](website-deployment-test-node1.png)
+  ![Website on Node 2](website-deployment-test-node2.png)
+
+  - Stage (test) Deployment Succeeded!
 
 ### PERFORM THE DEPLOYMENT NOW TO THE PRODUCTION ENVIRONMENT/NAMESPACE (EKS CLUSTER)
 - To perform the DEPLOYMENT to the Prod Envrionment 
