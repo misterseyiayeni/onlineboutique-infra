@@ -734,8 +734,8 @@ The ZAP server is Jenkins CI server.
   - Open your Browser
   - Go to: http://YOUR_KUBERNETES_WORKER_NODE_IP:30000
   
- ![Website Deployment on Node 1](website-deployment-test-node1.png)
- ![Website Deployment on Node 2](website-deployment-test-node2.png)
+![Website Deployment on Node One](website-deployment-test-node-one.png)
+![Website Deployment on Node Two](website-deployment-test-node-two.png)
 
   - Stage (test) Deployment Succeeded!
 
