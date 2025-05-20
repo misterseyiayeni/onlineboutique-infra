@@ -229,6 +229,7 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
       - Click on `SonarScanner for MSBuild` 
       - Name: `SonarScanner`
       - Enable: `Install automatically`
+      - Version: `5.0.1.3006`
 
 ![Jenkins SonarQube](jenkins-sonarqube.png)
 
