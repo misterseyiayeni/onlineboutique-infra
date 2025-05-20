@@ -76,8 +76,23 @@ Replace <EC2-Public-IP> with your instance’s public IP address.
 cd into eks-cluster-ec2 and enter:
 
 - terraform init
+
+![terraform init - 1](terraform-init.png)
+![terraform init - 1](terraform-init-1b.png)
+
 - terraform plan
+
+![terraform plan - 1](terraform-plan.png)
+![terraform plan - 2](terraform-plan-2b.png)
+
 - terraform apply
+
+![terraform apply - 1](terraform-apply-1.png)
+![terraform apply - 2](terraform-apply-2.png)
+![terraform apply - 3](terraform-apply-3.png)
+![terraform apply - 4](terraform-apply-4.png)
+![terraform apply - 4b](terraform-apply-4b.png)
+![terraform apply - 5](terraform-apply-5.png)
 
 This will automatically setup your EKS cluster.
 
@@ -101,7 +116,8 @@ Get the IP external addresses of the following resources and save for use:
 - SonaQube_server_http_url = "http://xx.xx.xx.xx:xx"
 - jenkins_server_http_url = "http://xx.xx.xx.xx:xx"
 
-- ![CICD architecture ](architecture.png)
+- ![CI-CD Infrasstructure](ci-cd-infrastructure.png)
+- 
 - ![microservice Architecture](architecture-1.png)
 
 The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
@@ -124,7 +140,11 @@ The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on 
 ### Jenkins setup
 1) #### Access Jenkins
 
+**Please ensure that you use the exact versions of plugins displayed in the screenshots to avoid deployment issues**
+
 Retrieve your AWS EC2 Public IP by running:
+
+![EC2 Instances](ec2-instances.png)
 
 aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress"
     - Copy your Jenkins Public IP address and paste on the browser: http://<ExternalIP>:8080
@@ -175,13 +195,17 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
   
     - Click on `Install`
     - Once all plugins are installed select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
-![jenkins restart to load pluggins](<jenkins plugins restart.png>)
+
+![alt text](jenkins-setup-1.png)
+![alt text](jenkins-setup-2.png)
+
+
 - Refresh your Browser and Log back into Jenkins
 
 3)  #### Global tools configuration:
     - Click on Manage Jenkins -->> Tools -->> Global Tool Configuration
 
-![Global Tool Configuration](<jenkins global tool config.png>)
+![Global Tool Configuration](jenkins-tools.png)
 
 - **JDK** 
         - Click on `Add JDK` -->> Make sure **Install automatically** is enabled 
@@ -191,20 +215,22 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
         - Click on `Add installer` and select `Install from adoptium.net`
         - Version: `jdk-17.0.8.1+1`
   
-![JDK Pluggin](<openjdk plugins.png>)
+![Jenkins JDK](jenkins-jdk.png)
 
 - **Gradle Installation**
       - Click on `Add Gradle`
       - Name: `Gradle`
       - Enable `Install automatically`
       - Version: `8.8`
-![Gradle setup](gradle-setup.png)
+
+![Jenkins Gradle](jenkins-gradle.png)
 
 - **SonarQube Scanner** 
       - Click on `SonarScanner for MSBuild` 
       - Name: `SonarScanner`
       - Enable: `Install automatically`
-![SonarQube Scanner](sonascanner.png)
+
+![Jenkins SonarQube](jenkins-sonarqube.png)
 
 - **Snyk Installations** 
       - Click on ``Add Snyk`
@@ -214,7 +240,7 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
       - Update policy interval (hours): `24`
       - OS platform architecture: `Auto-detection`
 
-![Snyk Installations](snyk-install.png)
+![Jenkins Snyk](jenkins-snyk.png)
 
 - **Docker installations** 
       - Click on `Add Docker` 
@@ -224,7 +250,7 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
       - Select `Download from docker.com`
       - Docker version: `latest`
 
-![Docker installations](<docker installation.png>)
+![Jenkins Docker](jenkins-docker.png)
 
 Apply and save
 
@@ -490,7 +516,11 @@ Apply and save
 
     #### Configure AWS CLI on Jenkins CI server
       - Log into the Jenkins server
-      - Enter: aws configure
+      - Enter: aws configure and enter your:
+        - AWS Access key ID
+        - AWS Access Key
+        - Default region name: us-west-2
+        - Default output format: json
 
 
 4) ### 🛠 Step 1: Configure Prometheus to Scrape Metrics
@@ -537,7 +567,7 @@ scrape_configs:
 Verify via Prometheus UI under Status > Targets
 - targets: ['<prometheus-ec2-ip>:9090/targets']
 
-![prometheus Target](<prometheus target.png>)
+![Prometheus](prometheus.png)
 
 
 ### 🛠 Step 2: Connect Prometheus as Data Source in Grafana
@@ -556,7 +586,8 @@ Verify via Prometheus UI under Status > Targets
      - Jenkins (ID: 9964)
      - Set Prometheus as the data source
      - Click Import
-![grafana display](<grafana display.png>)
+
+![Grafana Dashboard](grafana-dashboard-display.png)
 
 ### 🚨 Step 4: Set Up Alerts  (optional)
    - Grafana Alerts
@@ -612,6 +643,7 @@ The ZAP server is Jenkins CI server.
 - Update `SonarQube projectName` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `SonarQube projectKey` of your Microservices in the `Jenkinsfiles...` - `All Microservices`
 - Update the `DockerHub username` of your Microservices in the `Jenkinsfiles...` - `All Microservices`, provide Yours
+- Ensure you change the Docker username of the checkout section
 - Update the `DockerHub username/Image name` in all the `deployment.yaml` files for `test-env` and `prod-env` folders in `deploy-envs` folder across `Every Single Microservice Branch`
     
     - Log into Jenkins: http://Jenkins-Public-IP:8080/
@@ -655,13 +687,18 @@ The ZAP server is Jenkins CI server.
   - Click on `Scan Multibranch Pipeline Now`
 
 ### Confirm That All Microservices Branch Pipelines Succeeded (If Not, Troubleshoot)
-![pipeline success for microservices ](<pipeline successful.png>)
+
+![Pipeline Deployment 1](pipeline-deployment-1.png)
+![Pipeline Deployment 2](pipeline-deployment-2.png)
+![Pipeline Deployment 3](pipeline-deployment-3.png)
 
 ### SonarQube Code Inspection Result For All Microservices Source Code
-  ![Sonaqube code inspection](sonaqube.png)
+  
+![SonarQube Code Inspection](sonarqube-code-analysis.png)
 
 ### Also Confirm You Have All Service Deployment/Docker Artifacts In DockerHub
-![docker images](<docker images.png>)
+
+![Docker Containers](docker-containers.png)
 
 ### PERFORM THE DEPLOYMENT IN THE STAGING ENVIRONMENT/NAMESPACE (EKS CLUSTER)
 - To perform the DEPLOYMENT in the staging Envrionment 
@@ -685,7 +722,8 @@ The ZAP server is Jenkins CI server.
   - SSH Back into your `Jenkins-CI` Server
       - RUN: `kubectl get svc -n test-env`
       - **NOTE:** COPY the Exposed `NodePort Port Number`
-  ![node port](nodeport.png)
+  
+  ![Node Port - Test](services-prod-test-envs.png)
 
   - Access The Application Running in the `Test Environment` within the Cluster
   - `Update` the EKS Cluster Security Group ***(If you've not already)***
@@ -721,17 +759,22 @@ The ZAP server is Jenkins CI server.
       - Navigate back to the `Jenkins-CI` shell 
       - RUN: `kubectl get svc -n prod-env`
       - Copy the LoadBalancer DNS and Open on a TAB on your choice Browser http://PROD_LOADBALANCER_DNS
-      ![load balancer dns](<load balancer dns.png>)
+    
+  ![Node Port - Prod](services-prod-test-envs.png)
 
 
   - Snyk SCA Test Result
   ![snyk scan](<snyk scan.png>)
 
   - Test/Scan Dockerfiles with Open Policy Agent (OPA)
-  
+
 
   - Slack Continuous Feedback Alert
+
+  ![Slack CI-CD Notification](slack-cicd-notification-success.png)
   
-![online shop dns](onlineshop-dns.png)
+![Website Deployment-1](website-deployment.png)
+![Website Deployment-2](website-deployment-2.png)
+![Website Deployment-mobile](website-deployment-mobile.png)
 
 ### Congratulations Your Deployment Was Successful
