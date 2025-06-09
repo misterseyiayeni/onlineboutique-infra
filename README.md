@@ -151,7 +151,7 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
     - Copy the Path from the Jenkins UI to get the Administrator password
       - On AWS console, click on the EC2 instance, click Connect using EC2 Instance Connect, and run the command once logged in: `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
       - Copy the password and log into Jenkins
-![jenkins signup](jenkins-signup.png)
+![Jenkins Signup](jenkins-signup.png)
 
 ### Note:  Jenkins URL 
 
@@ -164,7 +164,7 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
     - Click `Save and Continue`
     - Click on `Save and Finish`
     - - Click on `Start using Jenkins`
-![getting started](<Screen Shot 2023-04-24 at 8.49.43 AM.png>)
+![Jenkins User Creation](jenkins-user-creation.png)
 
 2)  #### Plugin installations:
     - Click on `Manage Jenkins`
@@ -196,8 +196,8 @@ aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress
     - Click on `Install`
     - Once all plugins are installed select/Check the Box **`Restart Jenkins when installation is complete and no jobs are running`**
 
-![alt text](jenkins-setup-1.png)
-![alt text](jenkins-setup-2.png)
+![Jenkins Setup](jenkins-setup-1.png)
+![Jenkins Setup](jenkins-setup-2.png)
 
 
 - Refresh your Browser and Log back into Jenkins
