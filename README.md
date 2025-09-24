@@ -1,5 +1,8 @@
 # Terraform CI/CD Infrastructure on AWS
 
+![CI-CD Infrasstructure](ci-cd-infrastructure.png) 
+![microservice Architecture](architecture-1.png)
+
 This Terraform module provisions a complete Continuous Integration / Continuous Deployment (CI/CD) environment in Amazon Web Services (AWS) using the `us-west-2` region. The setup includes a Virtual Private Cloud (VPC), public subnets, routing, Amazon Elastic Compute Cloud (EC2) instances for Jenkins, Prometheus, Grafana, and SonarQube, with security groups and Identity and Access Management (IAM) roles configured for access and automation.
 
 Navigate to onlineboutique-infra/eks-cluster-ec2. Edit provider.tf and change the value of the "Name" to the AWS user account you intend to use (shown below)
@@ -116,9 +119,6 @@ Get the IP external addresses of the following resources and save for use:
 - SonaQube_server_http_url = "http://xx.xx.xx.xx:xx"
 - jenkins_server_http_url = "http://xx.xx.xx.xx:xx"
 
-- ![CI-CD Infrasstructure](ci-cd-infrastructure.png)
-- 
-- ![microservice Architecture](architecture-1.png)
 
 The architectural diagram above illustrates a DevSecOps CI/CD infrastructure on AWS, enhanced with observability using Prometheus and Grafana. Here's a breakdown of each component and their interaction:
 
